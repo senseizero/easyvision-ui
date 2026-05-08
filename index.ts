@@ -1,4 +1,5 @@
 import './easyvision.css';
+import './table/EasyVisionTable.css';
 
 export { EasyVisionInput } from './input/EasyVisionInput';
 export { EasyVisionSelector } from './selector/EasyVisionSelector';
