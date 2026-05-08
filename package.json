@@ -2,7 +2,7 @@
   "name": "@senseizero/easyvision-ui",
   "version": "1.0.0",
   "publishConfig": {
-    "registry": "https://github.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
