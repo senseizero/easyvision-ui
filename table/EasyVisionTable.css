@@ -1,0 +1,68 @@
+/* EasyVision table scroll wrapper — show both axes' scrollbars.
+ * Co-located with the component so it ships wherever EasyVision is used,
+ * even when the host project hides scrollbars globally.
+ * Uses theme-agnostic rgba so it works without any CSS variable setup. */
+
+.easyvision-table-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+  -ms-overflow-style: auto; /* IE/Edge */
+}
+
+.easyvision-table-scroll::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+
+.easyvision-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.easyvision-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.easyvision-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.55);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+.easyvision-table-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark mode — works with either `prefers-color-scheme` or a `.dark` class
+ * on a parent element (the convention used by Shadcn/UI). */
+@media (prefers-color-scheme: dark) {
+  .easyvision-table-scroll {
+    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  }
+  .easyvision-table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    background-clip: padding-box;
+  }
+  .easyvision-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+    background-clip: padding-box;
+  }
+}
+
+.dark .easyvision-table-scroll,
+[data-theme='dark'] .easyvision-table-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+.dark .easyvision-table-scroll::-webkit-scrollbar-thumb,
+[data-theme='dark'] .easyvision-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+}
+.dark .easyvision-table-scroll::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .easyvision-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  background-clip: padding-box;
+}

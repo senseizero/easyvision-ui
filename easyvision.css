@@ -1,0 +1,30 @@
+/* Re-enable scrollbars on table scroll containers. Some host projects
+ * globally hide scrollbars via `* { scrollbar-width: none }` and
+ * `*::-webkit-scrollbar { display: none }`; this rule overrides that
+ * for any element marked with `.easyvision-table-scroll` so the table
+ * gets a visible horizontal scrollbar when its content overflows.
+ * The shadcn <Table> primitive wraps itself in a div with overflow-auto;
+ * we target that wrapper through our own marker class. */
+.easyvision-table-scroll > div {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+}
+
+.easyvision-table-scroll > div::-webkit-scrollbar {
+  display: block;
+  height: 8px;
+  width: 8px;
+}
+
+.easyvision-table-scroll > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.easyvision-table-scroll > div::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.35);
+  border-radius: 4px;
+}
+
+.easyvision-table-scroll > div::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.55);
+}
