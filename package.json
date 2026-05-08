@@ -1,6 +1,9 @@
 {
-  "name": "easyvision-ui",
+  "name": "@senseizero/easyvision-ui",
   "version": "1.0.0",
+  "publishConfig": {
+    "registry": "https://github.com"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/senseizero/easyvision-ui.git"
