@@ -22,8 +22,8 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "tsup",
-    "prepublishOnly": "tsup"
+    "build": "tsup && node postbuild.cjs",
+    "prepublishOnly": "tsup && node postbuild.cjs"
   },
   "peerDependencies": {
     "react": "^18 || ^19",
