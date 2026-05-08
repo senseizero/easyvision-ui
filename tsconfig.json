@@ -16,6 +16,6 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["index.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["global.d.ts", "index.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist", "demo"]
 }
