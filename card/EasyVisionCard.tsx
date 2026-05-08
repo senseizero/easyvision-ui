@@ -14,7 +14,7 @@ import * as React from 'react';
  * dependency on `@/components/ui` — the library is portable.
  *
  * Usage:
- *   import { EasyVisionCard, EasyVisionCardContent } from '@senseizero/easyvision-ui';
+ *   import { EasyVisionCard, EasyVisionCardContent } from '@easyvision/easyvision-ui';
  */
 
 const join = (...parts: Array<string | false | null | undefined>): string =>
