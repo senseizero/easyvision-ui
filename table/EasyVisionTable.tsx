@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type ColumnDef,
@@ -14,10 +15,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '../ui/table';
+import { Checkbox } from '../ui/checkbox';
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
 import { adaptColumns, shouldDisableSorting } from './ColumnDefAdapter';

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import {
   Select,
@@ -5,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '../../ui/select';
 import { X } from 'lucide-react';
 import type { SelectorFieldDef } from '../../types/multifilter.types';
 import type { SelectorOption } from '../../types/common.types';

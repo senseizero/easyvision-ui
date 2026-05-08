@@ -1,11 +1,12 @@
+import * as React from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+} from '../ui/select';
+import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { TableLabels } from '../types/table.types';
 

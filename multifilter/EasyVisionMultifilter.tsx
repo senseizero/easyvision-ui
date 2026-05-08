@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   forwardRef,
   useCallback,
@@ -8,13 +9,13 @@ import {
   useState,
 } from 'react';
 import { Plus, Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+} from '../ui/popover';
+import { Input } from '../ui/input';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
 import { easyVisionRegistry } from '../store/registry';

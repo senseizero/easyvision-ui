@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createContext, useContext, type ReactNode } from 'react';
 
 const NamespaceContext = createContext<string | null>(null);

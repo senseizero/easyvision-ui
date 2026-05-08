@@ -1,5 +1,6 @@
+import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import {
   EasyVisionInput,
   EasyVisionSelector,

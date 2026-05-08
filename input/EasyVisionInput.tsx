@@ -1,6 +1,7 @@
+import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Input } from '../ui/input';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { useDebouncedValue } from '../lib/debounce';
 import type { EasyVisionInputProps } from '../types/input.types';

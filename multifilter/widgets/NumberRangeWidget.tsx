@@ -1,4 +1,5 @@
-import { Input } from '@/components/ui/input';
+import * as React from 'react';
+import { Input } from '../../ui/input';
 import { X } from 'lucide-react';
 import type {
   NumberRangeFieldDef,

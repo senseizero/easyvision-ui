@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { TextWidget } from './widgets/TextWidget';
 import { SelectorWidget } from './widgets/SelectorWidget';
 import { MultiSelectWidget } from './widgets/MultiSelectWidget';

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
   Select,
@@ -5,14 +6,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+} from '../ui/select';
+import { Button } from '../ui/button';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '../ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -20,7 +21,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from '../ui/command';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import type { EasyVisionSelectorProps } from '../types/selector.types';
 import type { SelectorOption } from '../types/common.types';

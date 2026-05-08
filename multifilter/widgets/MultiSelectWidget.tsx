@@ -1,11 +1,12 @@
+import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '../../ui/popover';
+import { Input } from '../../ui/input';
+import { Checkbox } from '../../ui/checkbox';
 import { ChevronDown, X } from 'lucide-react';
 import type { MultiSelectFieldDef } from '../../types/multifilter.types';
 import type { SelectorOption } from '../../types/common.types';

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
@@ -5,8 +6,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+} from '../../ui/popover';
+import { Calendar } from '../../ui/calendar';
 import type {
   DateRangeFieldDef,
   DateRangeValue,

@@ -1,11 +1,12 @@
+import * as React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '../ui/dropdown-menu';
+import { Checkbox } from '../ui/checkbox';
 import { ChevronDown } from 'lucide-react';
 
 export interface SelectAllControlProps {
