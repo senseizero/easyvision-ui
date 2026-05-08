@@ -1,11 +1,9 @@
-{
-  "name": "@senseizero/easyvision-ui",
-  "version": "1.1.0",
+ {
+  "name": "easyvision-ui",
+  "version": "1.0.0",
+  "description": "A React component library for easyvision",
+  "main": "index.js",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/senseizero/easyvision-ui.git"
+    "access": "public" 
   }
 }
