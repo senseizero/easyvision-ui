@@ -2,8 +2,5 @@
   "name": "easyvision-ui",
   "version": "1.0.0",
   "description": "A React component library for easyvision",
-  "main": "index.js",
-  "publishConfig": {
-    "access": "public" 
-  }
+  "main": "index.js"
 }
