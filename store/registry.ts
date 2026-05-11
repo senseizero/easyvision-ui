@@ -24,10 +24,24 @@ export const easyVisionRegistry = createStore<RegistryState>((set, get) => ({
     fullId: string,
     init: () => SliceFor<K>
   ) => {
-    const existing = get().slices[fullId] as SliceFor<K> | undefined;
+    const state = get();
+    const existing = state.slices[fullId] as SliceFor<K> | undefined;
     if (existing) return existing;
     const created = init();
-    set((s) => ({ slices: { ...s.slices, [fullId]: created } }));
+    // Initialize the slice in place without going through `set`. `ensure` is
+    // commonly called during a consumer's render (e.g. inside
+    // `useEasyVisionSlice`), where invoking `set` would synchronously notify
+    // every subscriber — including other `useSyncExternalStore`-driven
+    // components currently rendering — and trip React's "Cannot update a
+    // component while rendering a different component" warning.
+    //
+    // Mutating the slices map in place is safe because no subscriber was
+    // observing this key a moment ago: the slice did not exist, so any
+    // snapshot they returned was `undefined`. The next render of the owning
+    // component will pick up the new slice via the snapshot getter; for any
+    // unrelated subscriber, the outer state reference is unchanged so their
+    // snapshot identity is stable and they don't re-render.
+    (state.slices as Record<string, Slice>)[fullId] = created;
     return created;
   },
 
