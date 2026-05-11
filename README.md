@@ -26,7 +26,7 @@ import {
 - [`EasyVisionMultifilter`](#easyvisionmultifilter)
   - [Field types](#field-types)
   - [Pinned, chip, locked](#pinned-chip-locked)
-  - [Buscar (perform) button](#buscar-perform-button)
+  - [Perform: live vs manual](#perform-live-vs-manual)
   - [Standalone usage (no table)](#standalone-usage-no-table)
   - [Nesting](#nesting)
   - [Snapshot shape](#snapshot-shape)
@@ -364,11 +364,45 @@ To make the multifilter fully static (no `+`, no X), set `editable={false}` on t
 <EasyVisionMultifilter editable={false} config={...} />
 ```
 
-### Buscar (perform) button
+### Perform: live vs manual
 
-> **Terminology.** "Perform" is the generic name for "user committed the filter" — i.e. the **Buscar / Search** action. It's called `perform` (not `onSearch`) because the multifilter is generic: the same event can drive a list refetch, an export, a recalculation, a navigation. The default button label is `"Buscar"`; override via `performLabel`.
+> **Terminology.** "Perform" is the generic name for "user committed the filter" — i.e. the **Buscar / Search** action. It's called `perform` (not `onSearch`) because the multifilter is generic: the same event can drive a list refetch, an export, a recalculation, a navigation.
 
-Set `performButton={true}` and an `onPerform` callback. The button's enable state combines:
+Perform fires through one of four paths:
+
+1. The user clicks the **Buscar** button (when `performButton: true`).
+2. The user presses Enter in a prominent text field (when `performButton: true`).
+3. `performOnMount` triggers it once after the multifilter mounts, if there's any non-empty value to re-emit (used to restore persisted state on remount).
+4. The imperative ref handle: `ref.current.perform()`.
+
+In addition, **live mode** auto-fires perform on every change to the active values / fields. Use it for in-memory tables where filtering is cheap and per-change UI updates feel natural. Manual mode stays explicit — typically what you want for API-backed tables, where every perform = a network request.
+
+```tsx
+<EasyVisionMultifilter
+  id="alerts"
+  performMode="live"          // 'live' | 'manual' | 'auto' (default 'auto')
+  performDebounceMs={150}     // debounce window for live mode; default 0
+  performOnMount              // still useful for restoring persisted state
+  onPerform={(snap) => api.list(snap.query)}
+  config={...}
+/>
+```
+
+`performMode: 'auto'` (the default) means **"ask the parent"**. When the multifilter is mounted inside an [`EasyVisionTable`](#binding-a-multifilter) via that table's `multifilter` prop, the table picks `'live'` for `paginationMode: 'local'` and `'manual'` for `paginationMode: 'api'`. Standalone, `'auto'` resolves to `'manual'` — safer for unknown consumers and matches the historical default.
+
+The two modes compose with the rest of the perform machinery:
+
+| | Manual | Live |
+|---|---|---|
+| Buscar button (`performButton: true`) | Visible if dirty + valid; press commits. | Visible if dirty + valid; press just forces an immediate perform (debounce skipped). |
+| `performOnMount` | Fires once on mount when values are present. | Same. |
+| Imperative `ref.current.perform()` | Always available. | Always available; flushes the debounce timer. |
+| Field add/remove (`+` / `X`) | Stages; no perform until Buscar / ref / unmount. | Counts as a change; debounced perform follows. |
+| Per-keystroke `onChange` | Always fires; perform doesn't follow. | Always fires; perform follows after `performDebounceMs`. |
+
+#### Buscar button
+
+Set `performButton={true}` to render the button. Its enable state combines:
 
 - `editable !== false` — the multifilter must be active.
 - `isValid` — every `mandatory` field has a non-empty value (recursively, including nested multifilters).
@@ -397,6 +431,8 @@ const ref = useRef<MultifilterHandle>(null);
 // ref.current?.perform();
 // ref.current?.getSnapshot();
 ```
+
+> **Note on `onPerform` timing.** `onPerform` is dispatched on a microtask after the internal snapshot commit, so it's safe to call `setState` on a parent component inside the callback. The microtask deferral prevents React's "Cannot update a component while rendering a different component" warning that would otherwise fire when perform happens inside a commit phase (e.g. via `performOnMount` or live-mode auto-fire).
 
 ### Standalone usage (no table)
 
@@ -519,7 +555,9 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
 | `performPosition` | `'inline' \| 'belowRow' \| 'externalRef'` | `'inline'` | |
 | `performTargetRef` | `RefObject<HTMLElement>` | — | Required if `performPosition === 'externalRef'` (TODO portal). |
 | `performOnMount` | `boolean` | `false` | Fire `onPerform` once if seeded state has values. |
-| `onPerform` | `(snap) => void` | — | Fires when the user clicks Buscar (or `performOnMount` triggers it). |
+| `performMode` | `'live' \| 'manual' \| 'auto'` | `'auto'` | When perform fires automatically. `'auto'` defers to the bound table's `paginationMode` (local → live, api → manual); standalone, resolves to manual. See [Perform: live vs manual](#perform-live-vs-manual). |
+| `performDebounceMs` | `number` | `0` | Debounce window before a live-mode perform fires after the last change. |
+| `onPerform` | `(snap) => void` | — | Fires when perform commits — from Buscar, `performOnMount`, the imperative `perform()` ref, or (live mode) any value/field change after the debounce. Dispatched on a microtask so calling `setState` inside is safe. |
 | `onChange` | `(snap) => void` | — | Every change (per keystroke / option toggle). |
 | `onStateChange` | `(snap) => void` | — | Same as `onChange`; provided for API symmetry. |
 | `showClearAll` | `boolean` | `editable` | Clears values & active fields. |
@@ -830,23 +868,42 @@ Highlighted rows get a `bg-muted/50` tint plus `data-highlighted="true"` on the 
 
 ### Binding a multifilter
 
-Pass a multifilter declaration via the `multifilter` prop. It auto-mounts in the toolbar and inherits the table's namespace. Pressing Buscar resets `page = 1`, stores the snapshot, and refetches (api) or applies the where-clause client-side (local).
+Pass a multifilter declaration via the `multifilter` prop. It auto-mounts in the toolbar and inherits the table's namespace. A perform resets `page = 1`, stores the snapshot, and refetches (api) or applies the where-clause client-side (local).
+
+**Perform timing is auto-selected.** Unless you pass an explicit `performMode`, the bound multifilter resolves `'auto'` to:
+
+- `'live'` when `paginationMode === 'local'` — filters apply as the user picks, no Buscar button needed.
+- `'manual'` when `paginationMode === 'api'` — values stage until the user clicks Buscar (or you call `ref.current.perform()`), so you don't fire one request per keystroke.
+
+Override per-table with `multifilter.performMode = 'live' | 'manual'`. Add `multifilter.performDebounceMs` to collapse rapid changes in live mode (useful for `type: 'text'` fields — pair with the input's own `debounceMs` if you want both layers).
 
 ```tsx
 <EasyVisionTable<Alert>
   id="alerts"
-  paginationMode="api" orderingMode="api"
+  paginationMode="api" orderingMode="api"   // → manual perform by default
   fetchData={fetchAlerts}
   getRowId={(a) => a.id}
   multifilter={{
     id: 'mainFilter',
-    performButton: true,
+    performButton: true,                     // explicit Buscar UI for the manual flow
     config: {
       fields: [
         { id: 'q', type: 'text', field: 'client.name', label: 'Búsqueda', prominent: true, pinned: true },
         /* ... */
       ],
     },
+  }}
+  columns={[/* ... */]}
+/>
+
+<EasyVisionTable<Bank>
+  id="banks"
+  paginationMode="local" orderingMode="local"  // → live perform by default
+  data={banks}
+  multifilter={{
+    id: 'banksFilter',
+    performDebounceMs: 150,                    // optional; smooths rapid edits
+    config: { fields: [/* ... */] },
   }}
   columns={[/* ... */]}
 />
