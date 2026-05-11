@@ -615,7 +615,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     <NamespaceProvider fullId={fullId}>
       <div className={className}>
         {multifilter && (
-          <div className="mb-2">
+          <div className="ev-table-multifilter">
             <EasyVisionMultifilter
               {...multifilter}
               ref={setMultifilterRef}
@@ -624,12 +624,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           </div>
         )}
 
-        
-
-        <div className="rounded-md border border-border overflow-hidden bg-card">
+        <div className="ev-table-card">
           {(toolbarLeft || toolbarRight || enableRowSelection || showColumnVisibility) && (
-            <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border">
-              <div className="flex items-center gap-2">{toolbarLeft}</div>
+            <div className="ev-table-toolbar">
+              <div className="ev-table-toolbar-section">{toolbarLeft}</div>
               
 
               {enableRowSelection && (() => {
@@ -650,11 +648,11 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
             : 0;
           if (!isAllScope && pageCount === 0) return null;
           return (
-            <div className="flex items-center gap-2 rounded-sm border border-primary/30 bg-primary/5 px-3 py-1 text-xs">
+            <div className="ev-table-sel-banner">
               {isEagerWildcard && isResolvingEager && (
-                <Loader2 className="w-3 h-2 animate-spin text-primary" />
+                <Loader2 className="ev-table-sel-banner-spinner" />
               )}
-              <span className="text-primary font-medium">
+              <span className="ev-table-sel-banner-text">
                 {isAllScope
                   ? isEagerWildcard && isResolvingEager
                     ? `${labels.loading}…`
@@ -665,17 +663,16 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                 variant="ghost"
                 size="sm"
                 onClick={() => onScopeChange('page')}
-                className="ml-auto h-6 text-xs"
+                className="ev-table-clear-btn"
               >
-                <X className="w-3 h-2 mr-1" />
+                <X className="ev-table-clear-icon" />
                 {labels.clearSelection}
               </Button>
             </div>
           );
         })()}
 
-        
-              <div className="flex items-center gap-2">
+              <div className="ev-table-toolbar-section">
                 {toolbarRight}
                 {showColumnVisibility && (
                   <ColumnVisibilityMenu table={tableInstance} label={labels.customizeColumns} />
@@ -685,7 +682,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           )}
 
           <div
-            className="easyvision-table-scroll relative w-full overflow-auto"
+            className="easyvision-table-scroll"
             style={
               maxBodyHeight !== undefined
                 ? {
@@ -697,12 +694,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                 : undefined
             }
           >
-            <table className="w-full caption-bottom text-sm min-w-max">
+            <table className="ev-table">
             <TableHeader
               className={
-                maxBodyHeight !== undefined
-                  ? 'sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_0_hsl(var(--border))]'
-                  : undefined
+                maxBodyHeight !== undefined ? 'ev-table-thead-sticky' : undefined
               }
             >
               {tableInstance.getHeaderGroups().map((hg) => (
@@ -710,7 +705,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                   {hg.headers.map((header) => {
                     if (header.column.id === '_select' && enableRowSelection) {
                       return (
-                        <TableHead key={header.id} className="w-[60px] whitespace-nowrap">
+                        <TableHead key={header.id} className="ev-table-th-checkbox">
                           <SelectAllControl
                             scope={selection.scope}
                             toggleable={selectAllScope === 'toggleable'}
@@ -747,23 +742,23 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                       <TableHead
                         key={header.id}
                         style={headerWidthStyle}
-                        className={[
-                          'relative',
-                          colMeta.largeScreensOnly ? 'hidden lg:table-cell' : '',
-                        ].filter(Boolean).join(' ')}
+                        className={
+                          colMeta.largeScreensOnly ? 'ev-table-large-only' : undefined
+                        }
                       >
                         {header.isPlaceholder ? null : sortable ? (
                           <button
-                            className="flex items-center gap-1 select-none hover:opacity-70"
+                            type="button"
+                            className="ev-table-sort-btn"
                             onClick={header.column.getToggleSortingHandler()}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
                             {header.column.getIsSorted() === 'asc' ? (
-                              <ArrowUp className="h-3 w-3" />
+                              <ArrowUp className="ev-table-sort-icon" />
                             ) : header.column.getIsSorted() === 'desc' ? (
-                              <ArrowDown className="h-3 w-3" />
+                              <ArrowDown className="ev-table-sort-icon" />
                             ) : (
-                              <ArrowUpDown className="h-3 w-3 text-muted-foreground opacity-50" />
+                              <ArrowUpDown className="ev-table-sort-icon ev-table-sort-icon-inactive" />
                             )}
                           </button>
                         ) : (
@@ -779,15 +774,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                             aria-label="Resize column"
                             // Wide invisible hit-target so users don't need
                             // pixel-perfect aim. The visible line is drawn
-                            // via ::after and styled per state.
+                            // via ::after and styled per state in CSS.
                             className={[
-                              'group absolute top-0 right-0 h-full w-3 -mr-1.5 cursor-col-resize select-none touch-none',
-                              "after:content-[''] after:absolute after:right-1.5 after:top-1/2 after:-translate-y-1/2",
-                              'after:h-1/2 after:w-px after:bg-border after:transition-all',
-                              'hover:after:w-1.5 hover:after:h-full hover:after:top-0 hover:after:translate-y-0 hover:after:bg-primary/30',
-                              header.column.getIsResizing()
-                                ? 'after:!w-1.5 after:!h-full after:!top-0 after:!translate-y-0 after:!bg-primary/60'
-                                : '',
+                              'ev-resize-handle',
+                              header.column.getIsResizing() ? 'is-resizing' : '',
                             ].filter(Boolean).join(' ')}
                           />
                         )}
@@ -800,17 +790,17 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={allColumns.length} className="h-48 text-center">
-                    <div className="flex items-center justify-center">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <TableCell colSpan={allColumns.length} className="ev-table-empty-cell">
+                    <div className="ev-table-spinner-wrapper">
+                      <Loader2 className="ev-table-loading-spinner" />
                     </div>
                   </TableCell>
                 </TableRow>
               ) : tableInstance.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={allColumns.length} className="h-48 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <p className="text-muted-foreground">
+                  <TableCell colSpan={allColumns.length} className="ev-table-empty-cell">
+                    <div className="ev-table-empty-state">
+                      <p className="ev-table-empty-text">
                         {emptyMessage ?? labels.noData}
                       </p>
                       {emptyAction}
@@ -831,10 +821,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                         (row.getIsSelected() || isAllSelected) ? 'selected' : undefined
                       }
                       data-highlighted={highlighted ? 'true' : undefined}
-                      className={[
-                        onRowClick ? 'cursor-pointer' : '',
-                        highlighted ? 'bg-muted/50' : '',
-                      ].filter(Boolean).join(' ')}
+                      className={onRowClick ? 'ev-table-row-clickable' : undefined}
                       onClick={() => onRowClick?.(row.original)}
                     >
                       {row.getVisibleCells().map((cell) => {
@@ -891,13 +878,13 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                             key={cell.id}
                             style={cellWidthStyle}
                             className={[
-                              cellMeta.largeScreensOnly ? 'hidden lg:table-cell' : '',
-                              cellMeta.truncate ? 'max-w-0' : '',
-                            ].filter(Boolean).join(' ')}
+                              cellMeta.largeScreensOnly ? 'ev-table-large-only' : '',
+                              cellMeta.truncate ? 'ev-table-cell-truncate' : '',
+                            ].filter(Boolean).join(' ') || undefined}
                           >
                             {cellMeta.truncate ? (
                               <div
-                                className="truncate"
+                                className="ev-table-cell-truncate-inner"
                                 title={titleAttr}
                               >
                                 {rendered}

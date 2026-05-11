@@ -46,32 +46,42 @@ export function EasyVisionInput({
 
   const isInvalid = mandatory && slice.value.trim().length === 0;
 
+  const hasIcon = icon === 'search';
+  const hasClear = Boolean(showClearButton && slice.value && !disabled);
+
   return (
-    <div className={`flex flex-col gap-1 ${className ?? ''}`}>
+    <div
+      className={[
+        'ev-input-comp',
+        hasIcon ? 'has-icon' : '',
+        hasClear ? 'has-clear' : '',
+        className ?? '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {label && (
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="ev-input-comp-label">
           {label}
-          {mandatory && <span className="ml-0.5 text-destructive">*</span>}
+          {mandatory && <span className="ev-input-comp-required">*</span>}
         </span>
       )}
-      <div className="relative">
-        {icon === 'search' && (
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        )}
+      <div className="ev-input-comp-wrap">
+        {hasIcon && <Search className="ev-input-comp-icon" />}
         <Input
-          className={`h-9 ${icon === 'search' ? 'pl-9' : ''} ${showClearButton && slice.value ? 'pr-9' : ''} ${isInvalid ? 'border-destructive focus-visible:ring-destructive/40' : ''}`}
+          className={isInvalid ? 'is-invalid' : undefined}
           placeholder={placeholder}
           value={slice.value}
           onChange={(e) => patch({ value: e.target.value })}
           disabled={disabled}
         />
-        {showClearButton && slice.value && !disabled && (
+        {hasClear && (
           <button
             type="button"
             onClick={() => patch({ value: '' })}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
+            className="ev-input-comp-clear"
           >
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
+            <X />
           </button>
         )}
       </div>

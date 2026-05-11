@@ -381,19 +381,16 @@ export const EasyVisionMultifilter = forwardRef<
     if (f.type === 'multifilter') {
       const removable = editable && !f.pinned && !f.locked;
       return (
-        <div
-          key={f.id}
-          className="rounded-md border border-dashed border-border bg-muted/30 p-2"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-muted-foreground">{f.label}</span>
+        <div key={f.id} className="ev-mf-nested">
+          <div className="ev-mf-nested-header">
+            <span className="ev-mf-nested-label">{f.label}</span>
             {removable && (
               <button
                 type="button"
                 onClick={() => removeField(f.id)}
-                className="ml-auto p-0.5 hover:bg-muted rounded"
+                className="ev-mf-nested-remove"
               >
-                <X className="w-3.5 h-3.5 text-muted-foreground" />
+                <X />
               </button>
             )}
           </div>
@@ -422,17 +419,19 @@ export const EasyVisionMultifilter = forwardRef<
   return (
     <NamespaceProvider fullId={fullId}>
       <div className={className}>
-        <div className="p-3 space-y-2 bg-card border border-border rounded-md">
+        <div className="ev-mf-panel">
           {/* Row 1: prominent search bars + add + perform + clear */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="ev-mf-row">
             {prominentSlots.map(({ def, removable, isLegacySearchField }) => (
               <div
                 key={isLegacySearchField ? `__searchField__${def.id}` : def.id}
-                className="relative flex-1 min-w-[200px]"
+                className="ev-mf-search-slot"
               >
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  className={`w-full h-9 pl-9 ${removable ? 'pr-9' : 'pr-3'} bg-muted border-0 rounded-md text-sm focus:ring-1 focus:ring-ring focus:bg-card`}
+                <Search className="ev-mf-search-icon" />
+                <input
+                  className={['ev-mf-search-input', removable ? 'has-clear' : 'no-clear']
+                    .filter(Boolean)
+                    .join(' ')}
                   placeholder={def.placeholder ?? def.label ?? labels.searchPlaceholder}
                   value={(values[def.id] as string | undefined) ?? ''}
                   onChange={(e) => updateValue(def.id, e.target.value)}
@@ -447,9 +446,9 @@ export const EasyVisionMultifilter = forwardRef<
                     type="button"
                     onClick={() => removeField(def.id)}
                     aria-label={labels.clear}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted-foreground/10"
+                    className="ev-mf-search-clear"
                   >
-                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                    <X />
                   </button>
                 )}
               </div>
@@ -461,22 +460,22 @@ export const EasyVisionMultifilter = forwardRef<
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 w-9 p-0 border border-dashed border-border hover:bg-muted rounded-md"
+                    className="ev-mf-add-btn"
                     aria-label={labels.addFilter}
                   >
-                    <Plus className="w-4 h-4 text-muted-foreground" />
+                    <Plus />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-52 p-1" align="start">
-                  <div className="space-y-0.5">
+                <PopoverContent className="ev-mf-add-popover" align="start">
+                  <div className="ev-mf-add-list">
                     {availableToAdd.map((f) => (
                       <button
                         key={f.id}
                         type="button"
                         onClick={() => addField(f.id)}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded-md flex items-center gap-2"
+                        className="ev-mf-add-item"
                       >
-                        <Plus className="w-3 h-3 text-muted-foreground" />
+                        <Plus />
                         {f.label}
                       </button>
                     ))}
@@ -490,9 +489,9 @@ export const EasyVisionMultifilter = forwardRef<
                 size="sm"
                 onClick={performAction}
                 disabled={!performEnabled}
-                className="h-9 px-4 text-xs font-medium"
+                className="ev-mf-perform"
               >
-                {performIcon ?? <Search className="w-3.5 h-3.5 mr-1.5" />}
+                {performIcon ?? <Search />}
                 {performLabelText}
               </Button>
             )}
@@ -502,9 +501,9 @@ export const EasyVisionMultifilter = forwardRef<
                 variant="ghost"
                 size="sm"
                 onClick={clearAll}
-                className="h-9 px-3 text-xs text-muted-foreground"
+                className="ev-mf-clear"
               >
-                <X className="w-3.5 h-3.5 mr-1" />
+                <X />
                 {labels.clear}
               </Button>
             )}
@@ -512,27 +511,23 @@ export const EasyVisionMultifilter = forwardRef<
 
           {/* Pinned area */}
           {pinnedFields.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {pinnedFields.map(renderField)}
-            </div>
+            <div className="ev-mf-row">{pinnedFields.map(renderField)}</div>
           )}
 
           {/* Chip area */}
           {chipFields.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {chipFields.map(renderField)}
-            </div>
+            <div className="ev-mf-row">{chipFields.map(renderField)}</div>
           )}
 
           {performButton && performPosition === 'belowRow' && (
-            <div className="flex justify-end pt-1">
+            <div className="ev-mf-below-row">
               <Button
                 size="sm"
                 onClick={performAction}
                 disabled={!performEnabled}
-                className="h-9 px-4 text-xs font-medium"
+                className="ev-mf-perform"
               >
-                {performIcon ?? <Search className="w-3.5 h-3.5 mr-1.5" />}
+                {performIcon ?? <Search />}
                 {performLabelText}
               </Button>
             </div>

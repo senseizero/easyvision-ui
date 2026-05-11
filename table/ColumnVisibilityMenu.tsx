@@ -19,11 +19,11 @@ export function ColumnVisibilityMenu<T>({ table, label }: ColumnVisibilityMenuPr
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          <Settings2 className="mr-2 h-4 w-4" />
+          <Settings2 className="ev-cv-icon" />
           {label}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+      <DropdownMenuContent align="end" className="ev-cv-menu">
         {table
           .getAllColumns()
           .filter((col) => col.getCanHide() && col.id !== '_select')
@@ -38,7 +38,7 @@ export function ColumnVisibilityMenu<T>({ table, label }: ColumnVisibilityMenuPr
                 key={col.id}
                 checked={col.getIsVisible()}
                 onCheckedChange={(v) => col.toggleVisibility(!!v)}
-                className="capitalize"
+                className="ev-cv-item"
               >
                 {headerLabel}
               </DropdownMenuCheckboxItem>

@@ -38,22 +38,19 @@ export function DateRangeWidget({
   })();
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
-      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+    <div className="ev-mf-chip">
+      <span className="ev-mf-chip-label">
         {definition.label}
-        {definition.mandatory && <span className="ml-0.5 text-destructive">*</span>}:
+        {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       <Popover>
         <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-xs hover:text-foreground"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
+          <button type="button" className="ev-mf-chip-trigger-btn">
+            <CalendarIcon />
             <span>{label}</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="ev-mf-daterange-popover" align="start">
           <Calendar
             mode="range"
             selected={{ from: range.from, to: range.to }}
@@ -67,9 +64,9 @@ export function DateRangeWidget({
         <button
           type="button"
           onClick={onRemove}
-          className="ml-1 p-0.5 hover:bg-muted rounded transition-colors"
+          className="ev-mf-chip-remove"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <X />
         </button>
       )}
     </div>

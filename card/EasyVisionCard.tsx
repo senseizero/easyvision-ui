@@ -24,14 +24,7 @@ const EasyVisionCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={join(
-      'rounded-md border border-border bg-card text-card-foreground shadow-sm',
-      className,
-    )}
-    {...props}
-  />
+  <div ref={ref} className={join('ev-card', className)} {...props} />
 ));
 EasyVisionCard.displayName = 'EasyVisionCard';
 
@@ -39,11 +32,7 @@ const EasyVisionCardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={join('flex flex-col space-y-1.5 p-6', className)}
-    {...props}
-  />
+  <div ref={ref} className={join('ev-card-header', className)} {...props} />
 ));
 EasyVisionCardHeader.displayName = 'EasyVisionCardHeader';
 
@@ -51,14 +40,7 @@ const EasyVisionCardTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, children, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={join(
-      'text-2xl font-semibold leading-none tracking-tight',
-      className,
-    )}
-    {...props}
-  >
+  <h3 ref={ref} className={join('ev-card-title', className)} {...props}>
     {children}
   </h3>
 ));
@@ -68,11 +50,7 @@ const EasyVisionCardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={join('text-sm text-muted-foreground', className)}
-    {...props}
-  />
+  <p ref={ref} className={join('ev-card-description', className)} {...props} />
 ));
 EasyVisionCardDescription.displayName = 'EasyVisionCardDescription';
 
@@ -80,7 +58,7 @@ const EasyVisionCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={join('p-6 pt-0', className)} {...props} />
+  <div ref={ref} className={join('ev-card-content', className)} {...props} />
 ));
 EasyVisionCardContent.displayName = 'EasyVisionCardContent';
 
@@ -88,11 +66,7 @@ const EasyVisionCardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={join('flex items-center p-6 pt-0', className)}
-    {...props}
-  />
+  <div ref={ref} className={join('ev-card-footer', className)} {...props} />
 ));
 EasyVisionCardFooter.displayName = 'EasyVisionCardFooter';
 

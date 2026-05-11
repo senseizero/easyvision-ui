@@ -40,10 +40,10 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
     value === undefined || value === '' ? SENTINEL : String(value);
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
-      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+    <div className="ev-mf-chip">
+      <span className="ev-mf-chip-label">
         {definition.label}
-        {definition.mandatory && <span className="ml-0.5 text-destructive">*</span>}:
+        {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       <Select
         value={selectValue}
@@ -55,7 +55,7 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
           }
         }}
       >
-        <SelectTrigger className="h-7 min-w-[120px] border-0 bg-transparent p-0 px-2 text-xs focus:ring-0 focus:ring-offset-0">
+        <SelectTrigger className="ev-mf-chip-select-trigger">
           <SelectValue placeholder={definition.placeholder ?? 'Seleccionar'} />
         </SelectTrigger>
         <SelectContent>
@@ -70,9 +70,9 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
         <button
           type="button"
           onClick={onRemove}
-          className="ml-1 p-0.5 hover:bg-muted rounded transition-colors"
+          className="ev-mf-chip-remove"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <X />
         </button>
       )}
     </div>

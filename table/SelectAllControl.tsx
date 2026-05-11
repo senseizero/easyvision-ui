@@ -33,7 +33,7 @@ export function SelectAllControl({
   labels,
 }: SelectAllControlProps) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="ev-sa-control">
       <Checkbox
         checked={state === 'checked' ? true : state === 'indeterminate' ? 'indeterminate' : false}
         onCheckedChange={(c) => onToggle(!!c)}
@@ -44,10 +44,10 @@ export function SelectAllControl({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex h-5 w-5 items-center justify-center rounded border border-border bg-background hover:bg-muted"
+              className="ev-sa-toggle"
               aria-label="Toggle select-all scope"
             >
-              <ChevronDown className="h-3.5 w-3.5" />
+              <ChevronDown className="ev-sa-toggle-icon" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">

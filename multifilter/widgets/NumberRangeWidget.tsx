@@ -21,24 +21,24 @@ export function NumberRangeWidget({
 }: NumberRangeWidgetProps) {
   const range = value ?? {};
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
-      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+    <div className="ev-mf-chip">
+      <span className="ev-mf-chip-label">
         {definition.label}
-        {definition.mandatory && <span className="ml-0.5 text-destructive">*</span>}:
+        {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       <Input
         type="number"
-        className="h-7 w-20 border-0 bg-transparent p-0 px-2 text-xs focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="ev-mf-chip-number"
         placeholder="Min"
         value={range.min ?? ''}
         onChange={(e) =>
           onChange({ ...range, min: e.target.value ? Number(e.target.value) : undefined })
         }
       />
-      <span className="text-xs text-muted-foreground">—</span>
+      <span className="ev-mf-chip-dash">—</span>
       <Input
         type="number"
-        className="h-7 w-20 border-0 bg-transparent p-0 px-2 text-xs focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="ev-mf-chip-number"
         placeholder="Max"
         value={range.max ?? ''}
         onChange={(e) =>
@@ -49,9 +49,9 @@ export function NumberRangeWidget({
         <button
           type="button"
           onClick={onRemove}
-          className="ml-1 p-0.5 hover:bg-muted rounded transition-colors"
+          className="ev-mf-chip-remove"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <X />
         </button>
       )}
     </div>

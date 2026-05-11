@@ -88,17 +88,22 @@ export function EasyVisionSelector<V extends string | number = string | number>(
 
   const commit = (v: V | undefined) => patch({ value: v });
 
-  const triggerClasses = `${isInvalid ? 'border-destructive focus-visible:ring-destructive/40' : ''} ${className ?? ''}`;
+  const triggerExtraClasses = [
+    isInvalid ? 'ev-selector-trigger-invalid' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   if (searchable) {
     const labelOf = (v: V | undefined) =>
       opts.find((o) => o.value === v)?.label ?? '';
     return (
-      <div className="flex flex-col gap-1">
+      <div className="ev-selector">
         {label && (
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="ev-selector-label">
             {label}
-            {mandatory && <span className="ml-0.5 text-destructive">*</span>}
+            {mandatory && <span className="ev-selector-required">*</span>}
           </span>
         )}
         <Popover>
@@ -107,13 +112,13 @@ export function EasyVisionSelector<V extends string | number = string | number>(
               variant="outline"
               role="combobox"
               disabled={disabled}
-              className={`h-10 justify-between font-normal ${triggerClasses}`}
+              className={['ev-selector-combo-trigger', triggerExtraClasses].filter(Boolean).join(' ')}
             >
-              {value !== undefined && value !== '' ? labelOf(value) : <span className="text-muted-foreground">{placeholder}</span>}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              {value !== undefined && value !== '' ? labelOf(value) : <span className="ev-selector-combo-placeholder">{placeholder}</span>}
+              <ChevronsUpDown className="ev-selector-combo-icon" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+          <PopoverContent className="ev-selector-combo-popover" align="start">
             <Command>
               <CommandInput placeholder="Buscar..." />
               <CommandList>
@@ -125,7 +130,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
                       value={o.label}
                       onSelect={() => commit(o.value)}
                     >
-                      <Check className={`mr-2 h-4 w-4 ${value === o.value ? 'opacity-100' : 'opacity-0'}`} />
+                      <Check className={['ev-selector-item-check', value === o.value ? '' : 'is-hidden'].filter(Boolean).join(' ')} />
                       {o.label}
                     </CommandItem>
                   ))}
@@ -157,16 +162,16 @@ export function EasyVisionSelector<V extends string | number = string | number>(
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="ev-selector">
       {label && (
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="ev-selector-label">
           {label}
-          {mandatory && <span className="ml-0.5 text-destructive">*</span>}
+          {mandatory && <span className="ev-selector-required">*</span>}
         </span>
       )}
-      <div className="flex items-center gap-2">
+      <div className="ev-selector-row">
         <Select value={selectValue} onValueChange={onValueChange} disabled={disabled}>
-          <SelectTrigger className={triggerClasses}>
+          <SelectTrigger className={triggerExtraClasses || undefined}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
@@ -181,10 +186,10 @@ export function EasyVisionSelector<V extends string | number = string | number>(
           <button
             type="button"
             onClick={() => (confirmMode ? setPending(undefined) : commit(undefined))}
-            className="p-1 hover:bg-muted rounded"
+            className="ev-selector-clear"
             aria-label="Limpiar"
           >
-            <X className="h-3.5 w-3.5 text-muted-foreground" />
+            <X />
           </button>
         )}
         {confirmMode && pending !== value && (

@@ -54,48 +54,39 @@ export function MultiSelectWidget({
   const labelOf = (v: string | number) => opts.find((o) => o.value === v)?.label ?? String(v);
 
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 flex-wrap">
-      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+    <div className="ev-mf-chip is-wrap">
+      <span className="ev-mf-chip-label">
         {definition.label}
-        {definition.mandatory && <span className="ml-0.5 text-destructive">*</span>}:
+        {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       {selected.map((v) => (
-        <span
-          key={String(v)}
-          className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-md"
-        >
+        <span key={String(v)} className="ev-mf-chip-badge">
           {labelOf(v)}
           <button
             type="button"
             onClick={() => removeOne(v)}
-            className="p-0.5 hover:bg-muted rounded"
+            className="ev-mf-chip-badge-x"
           >
-            <X className="h-3 w-3" />
+            <X />
           </button>
         </span>
       ))}
       <Popover>
         <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
+          <button type="button" className="ev-mf-chip-caret">
+            <ChevronDown />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-2" align="start">
+        <PopoverContent className="ev-mf-ms-popover" align="start">
           <Input
-            className="mb-2 h-8 text-xs"
+            className="ev-mf-ms-search"
             placeholder="Buscar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="max-h-48 overflow-y-auto">
+          <div className="ev-mf-ms-list">
             {filtered.map((o) => (
-              <label
-                key={String(o.value)}
-                className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs hover:bg-muted"
-              >
+              <label key={String(o.value)} className="ev-mf-ms-option">
                 <Checkbox
                   checked={selected.includes(o.value)}
                   onCheckedChange={() => toggle(o.value)}
@@ -104,7 +95,7 @@ export function MultiSelectWidget({
               </label>
             ))}
             {filtered.length === 0 && (
-              <p className="px-2 py-1 text-xs text-muted-foreground">Sin opciones</p>
+              <p className="ev-mf-ms-empty">Sin opciones</p>
             )}
           </div>
         </PopoverContent>
@@ -113,9 +104,9 @@ export function MultiSelectWidget({
         <button
           type="button"
           onClick={onRemove}
-          className="ml-1 p-0.5 hover:bg-muted rounded transition-colors"
+          className="ev-mf-chip-remove"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <X />
         </button>
       )}
     </div>

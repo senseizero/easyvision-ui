@@ -32,14 +32,14 @@ export function PaginationFooter({
   const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
 
   return (
-    <div className="flex items-center justify-between p-4 border-t border-border text-sm text-muted-foreground">
-      <div className="flex items-center gap-3">
+    <div className="ev-table-footer">
+      <div className="ev-table-footer-section">
         <span>{labels.rowsPerPage}</span>
         <Select
           value={String(itemsPerPage)}
           onValueChange={(v) => onItemsPerPageChange(Number(v))}
         >
-          <SelectTrigger className="h-9 w-[70px] border border-border">
+          <SelectTrigger className="ev-table-footer-ipp">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -55,13 +55,13 @@ export function PaginationFooter({
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="ev-table-footer-section">
         <span>{labels.page}</span>
         <Select
           value={String(currentPage)}
           onValueChange={(v) => onPageChange(Number(v))}
         >
-          <SelectTrigger className="h-9 w-16 border border-border">
+          <SelectTrigger className="ev-table-footer-pg">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -75,24 +75,24 @@ export function PaginationFooter({
         <span>
           {labels.of} {totalPages}
         </span>
-        <div className="flex items-center gap-1 ml-1">
+        <div className="ev-table-footer-nav">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="ev-table-footer-nav-btn"
             disabled={currentPage <= 1}
             onClick={() => onPageChange(currentPage - 1)}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="ev-table-footer-nav-icon" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="ev-table-footer-nav-btn"
             disabled={currentPage >= totalPages}
             onClick={() => onPageChange(currentPage + 1)}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="ev-table-footer-nav-icon" />
           </Button>
         </div>
       </div>
