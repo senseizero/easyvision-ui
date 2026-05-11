@@ -6,7 +6,7 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
+  useSyncExternalStore,
 } from 'react';
 import { Plus, Search, X } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -73,6 +73,8 @@ export const EasyVisionMultifilter = forwardRef<
     performPosition = 'inline',
     performTargetRef,
     performOnMount = false,
+    performMode = 'auto',
+    performDebounceMs = 0,
     onPerform,
     onChange,
     onStateChange,
@@ -82,6 +84,12 @@ export const EasyVisionMultifilter = forwardRef<
     persist = false,
     clearWhen,
   } = props;
+
+  // When `performMode === 'auto'` and we're rendered standalone (no parent
+  // table override), fall back to manual — safer for unknown consumers and
+  // matches the historical default.
+  const resolvedPerformMode: 'live' | 'manual' =
+    performMode === 'live' ? 'live' : 'manual';
 
   const labels: MultifilterLabels = { ...DEFAULT_LABELS, ...labelOverrides };
   const showClear = showClearAll ?? editable;
@@ -129,19 +137,24 @@ export const EasyVisionMultifilter = forwardRef<
 
   const { activeFields, values, lastConfirmedSnapshotJSON } = slice;
 
-  // Track child multifilter slices in the registry for snapshot composition.
-  const [childTick, setChildTick] = useState(0);
-  useEffect(() => {
-    const unsub = easyVisionRegistry.subscribe(() => setChildTick((t) => t + 1));
-    return unsub;
-  }, []);
+  // Track child multifilter slices via React-aware external store subscription.
+  // The previous `setChildTick`-in-subscribe pattern dispatched React state
+  // updates from inside zustand's synchronous notify pass, which could cascade
+  // into "setState during render" warnings when several multifilter instances
+  // reacted to one another's `patch` call. `useSyncExternalStore` integrates
+  // with the React scheduler and avoids that.
+  const registryState = useSyncExternalStore(
+    easyVisionRegistry.subscribe,
+    easyVisionRegistry.getState,
+    easyVisionRegistry.getState,
+  );
 
   const childSnapshots = useMemo(() => {
     const out: Record<string, { values: Record<string, unknown>; activeFields: string[] }> = {};
     for (const f of config.fields) {
       if (f.type !== 'multifilter') continue;
       const childFullId = `${fullId}.${f.id}-multifilter`;
-      const childSlice = easyVisionRegistry.getState().slices[childFullId] as
+      const childSlice = registryState.slices[childFullId] as
         | MultifilterSliceData
         | undefined;
       if (childSlice) {
@@ -152,8 +165,7 @@ export const EasyVisionMultifilter = forwardRef<
       }
     }
     return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fullId, config.fields, childTick]);
+  }, [fullId, config.fields, registryState]);
 
   const childQueries = useMemo(() => {
     const out: Record<string, MultifilterQuery> = {};
@@ -243,10 +255,21 @@ export const EasyVisionMultifilter = forwardRef<
   }, [snapshotKey, dirty, isValid, snapshot, onChange, onStateChange]);
 
   // Perform action.
+  //
+  // `patch` is applied synchronously so internal state (the confirmed snapshot
+  // key) is correct immediately. The external `onPerform` callback is deferred
+  // to the next microtask, which prevents downstream `setState` calls from
+  // landing inside the current commit phase — the original cause of React's
+  // "Cannot update a component while rendering a different component" warning
+  // when this is invoked from `useEffect` (e.g. `performOnMount`) or from the
+  // live-mode auto-fire effect below.
   const performAction = useCallback(() => {
     const key = buildSnapshotKey({ activeFields, values: composedValues });
     patch({ lastConfirmedSnapshotJSON: key });
-    onPerform?.({ ...snapshot, isDirty: false });
+    if (onPerform) {
+      const emitted: MultifilterSnapshot = { ...snapshot, isDirty: false };
+      queueMicrotask(() => onPerform(emitted));
+    }
   }, [activeFields, composedValues, patch, onPerform, snapshot]);
 
   // performOnMount: fire once on mount if there's anything to perform.
@@ -267,6 +290,38 @@ export const EasyVisionMultifilter = forwardRef<
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [performOnMount]);
+
+  // Live mode: auto-fire `performAction` whenever the snapshot's value/active
+  // composition changes. Debounced via `performDebounceMs` so rapid edits
+  // (typing into a text field, toggling several chips quickly) collapse into a
+  // single perform.
+  const liveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const livePrevKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (resolvedPerformMode !== 'live') return;
+    // Establish baseline on first mount without firing — initial seeds are the
+    // responsibility of `performOnMount`. After that, every distinct change to
+    // the snapshot key triggers a debounced perform.
+    if (livePrevKeyRef.current === null) {
+      livePrevKeyRef.current = snapshotKey;
+      return;
+    }
+    if (livePrevKeyRef.current === snapshotKey) return;
+    livePrevKeyRef.current = snapshotKey;
+
+    if (liveTimerRef.current !== null) clearTimeout(liveTimerRef.current);
+    liveTimerRef.current = setTimeout(() => {
+      liveTimerRef.current = null;
+      performAction();
+    }, performDebounceMs);
+
+    return () => {
+      if (liveTimerRef.current !== null) {
+        clearTimeout(liveTimerRef.current);
+        liveTimerRef.current = null;
+      }
+    };
+  }, [snapshotKey, resolvedPerformMode, performDebounceMs, performAction]);
 
   useImperativeHandle(ref, () => ({
     perform: performAction,

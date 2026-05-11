@@ -618,6 +618,14 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           <div className="ev-table-multifilter">
             <EasyVisionMultifilter
               {...multifilter}
+              performMode={
+                multifilter.performMode === undefined ||
+                multifilter.performMode === 'auto'
+                  ? isApi
+                    ? 'manual'
+                    : 'live'
+                  : multifilter.performMode
+              }
               ref={setMultifilterRef}
               onPerform={handlePerform}
             />

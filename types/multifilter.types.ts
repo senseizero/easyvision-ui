@@ -169,6 +169,30 @@ export interface EasyVisionMultifilterProps extends BaseStatefulProps<Multifilte
   performTargetRef?: RefObject<HTMLElement>;
   /** Auto-fire onPerform once on mount (useful when restoring persisted state). */
   performOnMount?: boolean;
+  /**
+   * Controls when `performAction` (and therefore `onPerform`) fires in response
+   * to value/field changes.
+   *
+   * - `'manual'` (default for standalone use): only fires from the Buscar
+   *   button, `performOnMount`, or the imperative `perform()` ref. This is the
+   *   right default for API-backed tables where each perform = a network
+   *   request.
+   * - `'live'`: also fires on every change to the active values, optionally
+   *   debounced via `performDebounceMs`. Use for in-memory tables where
+   *   filtering is cheap.
+   * - `'auto'`: ask the parent. When the multifilter is bound through a
+   *   table's `multifilter` prop, the table picks `'live'` for
+   *   `paginationMode: 'local'` and `'manual'` for `paginationMode: 'api'`.
+   *   Falls back to `'manual'` for standalone mounts.
+   *
+   * Default `'auto'`.
+   */
+  performMode?: 'live' | 'manual' | 'auto';
+  /**
+   * Debounce window in ms before a `'live'`-mode perform fires after the last
+   * change. Default `0` (next-tick).
+   */
+  performDebounceMs?: number;
   onPerform?: (snap: MultifilterSnapshot) => void;
   onChange?: (snap: MultifilterSnapshot) => void;
   showClearAll?: boolean;
