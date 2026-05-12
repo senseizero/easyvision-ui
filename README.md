@@ -36,6 +36,7 @@ import {
   - [Column definitions](#column-definitions)
     - [Column sizing, truncation, and resizing](#column-sizing-truncation-and-resizing)
     - [Body height & sticky header](#body-height--sticky-header)
+    - [Pagination footer modes](#pagination-footer-modes)
   - [Selection](#selection)
   - [Highlighting rows (master/detail)](#highlighting-rows-masterdetail)
   - [Binding a multifilter](#binding-a-multifilter)
@@ -779,6 +780,46 @@ Recommended pattern: `"min(<vh>, <px>)"`. On most monitors the px cap wins (cons
 
 Both axes get a thin, theme-aware scrollbar via co-located CSS in [`EasyVisionTable.css`](./table/EasyVisionTable.css), so the styling ships with the component and works in any host project regardless of how that project handles scrollbars globally. Dark mode is detected via `prefers-color-scheme`, a `.dark` ancestor (Shadcn convention), or `[data-theme='dark']`.
 
+#### Pagination footer modes
+
+`paginationDisplay` controls **how** the pagination footer is rendered. It's independent of `paginationMode`, which controls **where** slicing happens (in-memory vs. server). Defaults to `'always'`, so existing tables are unchanged.
+
+| value | rows-per-page selector | item count | page selector + nav |
+|---|---|---|---|
+| `'always'` (default) | shown | shown | shown |
+| `'fixedItemsPerPage'` | hidden | shown | only when `totalCount > itemsPerPage` |
+| `'fixedTotalItems'` | hidden | hidden | hidden (entire footer is not rendered) |
+
+```tsx
+// Default: full footer
+<EasyVisionTable id="users" data={users} columns={cols} />
+
+// Page size is a fixed product choice; pagination appears only on overflow.
+// Item count stays visible so users still see "X results".
+<EasyVisionTable
+  id="dashboard-alerts"
+  data={alerts}
+  columns={cols}
+  itemsPerPage={5}
+  paginationDisplay="fixedItemsPerPage"
+/>
+
+// Short, naturally-bounded list (a product's plans, conditions, …).
+// All rows render in one page; the footer is gone entirely.
+<EasyVisionTable
+  id="product-plans"
+  data={plans}
+  columns={cols}
+  itemsPerPage={9999}
+  paginationDisplay="fixedTotalItems"
+/>
+```
+
+Notes:
+- For `'fixedTotalItems'`, pair with a large `itemsPerPage` so every row actually renders — the prop hides the controls but doesn't change the page size.
+- For `'fixedItemsPerPage'`, the rows-per-page *selector* is hidden because "fixed" implies the size is a deliberate setting; the underlying `itemsPerPage` slice value still drives slicing as usual.
+- API mode (`paginationMode="api"`) works with all three values. In `'fixedItemsPerPage'`, the server still receives the configured `itemsPerPage`; nav controls just don't surface until `totalCount` exceeds it.
+
 ### Selection
 
 ```tsx
@@ -976,6 +1017,7 @@ The toolbar row is hidden entirely when none of `toolbarLeft`, `toolbarRight`, o
 | `getRowId` | `(row) => string` | `(row) => String(row.id)` — override only for non-standard shapes |
 | `itemsPerPage` | `number` | `10` |
 | `itemsPerPageOptions` | `number[]` | `[10, 15, 20]` |
+| `paginationDisplay` | `'always' \| 'fixedItemsPerPage' \| 'fixedTotalItems'` | `'always'` — footer rendering mode; see [Pagination footer modes](#pagination-footer-modes) |
 | `enableRowSelection` | `boolean` | `false` |
 | `selectAllScope` | `'page' \| 'all' \| 'toggleable'` | `'toggleable'` |
 | `selectAllResolution` | `'lazy' \| 'eager'` | `'lazy'` — `'eager'` materializes the full id list on wildcard select-all and locks sort while active |
