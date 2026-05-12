@@ -36,6 +36,13 @@ export interface TableSliceData {
   itemsPerPage: number;
   sort: { column: string; descending: boolean } | null;
   selection: TableSelection;
+  // User-toggled column visibility. Keys absent here fall back to the column's
+  // `initiallyHidden` default at read time, so columns added after persistence
+  // still honor their declared default.
+  columnVisibility: Record<string, boolean>;
+  // Drag-resized widths in pixels, keyed by column id. Only populated for
+  // columns marked `resizable: true`; non-resizable columns ignore this map.
+  columnSizing: Record<string, number>;
 }
 
 export type Slice =

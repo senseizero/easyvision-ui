@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type ColumnDef,
+  type ColumnSizingState,
   type RowData,
   type SortingState,
   type VisibilityState,
@@ -137,6 +138,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
         ids: {},
         scope: selectAllScope === 'all' ? 'all' : 'page',
       },
+      // Visibility starts empty: defaults from `initiallyHidden` are merged in
+      // at read time, so columns added later still honor their declared default.
+      columnVisibility: {},
+      columnSizing: {},
     }),
     persist,
   });
@@ -341,14 +346,36 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     return [checkboxCol, ...tanstackColumns];
   }, [enableRowSelection, tanstackColumns]);
 
-  // Initial column visibility from meta.initiallyHidden.
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+  // Column visibility / sizing both live in the table slice so they survive
+  // unmount when `persist` is on (same lifetime as page / sort / selection).
+  //
+  // Visibility: defaults from `initiallyHidden` are *not* baked into the slice;
+  // they're merged in at read time below. That way a column added to `columns`
+  // after the slice was persisted still picks up its declared default — if we
+  // had seeded the slice with defaults, the missing key for the new column
+  // would silently render it visible.
+  const visibilityDefaults = useMemo<VisibilityState>(() => {
     const v: VisibilityState = {};
     for (const c of columns) {
       if (c.initiallyHidden) v[c.field] = false;
     }
     return v;
-  });
+  }, [columns]);
+  const columnVisibility = useMemo<VisibilityState>(
+    () => ({ ...visibilityDefaults, ...slice.columnVisibility }),
+    [visibilityDefaults, slice.columnVisibility]
+  );
+
+  // Sizing: only persisted for columns currently marked `resizable: true`.
+  // Drag events from TanStack arrive only for resizable columns anyway, but
+  // we filter on write as well so a column toggling off `resizable` later
+  // doesn't leave a stale width entry in the slice.
+  const resizableFields = useMemo(() => {
+    const s = new Set<string>();
+    for (const c of columns) if (c.resizable) s.add(c.field);
+    return s;
+  }, [columns]);
+  const columnSizing = slice.columnSizing;
 
   // Selection mapped into TanStack's RowSelectionState shape.
   const rowSelection = useMemo(() => {
@@ -370,10 +397,28 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     columns: allColumns,
     state: {
       columnVisibility,
+      columnSizing,
       ...(enableRowSelection ? { rowSelection } : {}),
       sorting: sortingState,
     },
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (updater) => {
+      const next =
+        typeof updater === 'function' ? updater(columnVisibility) : updater;
+      patch({ columnVisibility: next } as Partial<TableSliceData>);
+    },
+    onColumnSizingChange: (updater) => {
+      const next =
+        typeof updater === 'function'
+          ? (updater as (prev: ColumnSizingState) => ColumnSizingState)(columnSizing)
+          : updater;
+      // Strip non-resizable keys so the slice doesn't accumulate stale entries
+      // for columns that later drop `resizable: true`.
+      const filtered: Record<string, number> = {};
+      for (const k in next) {
+        if (resizableFields.has(k)) filtered[k] = next[k];
+      }
+      patch({ columnSizing: filtered } as Partial<TableSliceData>);
+    },
     enableRowSelection,
     onRowSelectionChange: enableRowSelection
       ? (updater) => {

@@ -66,8 +66,9 @@ export type EasyVisionColumn<T> =
       truncate?: boolean;
       /**
        * Allow the user to drag the column's right edge to resize it. The
-       * starting width is `width` (or 240px if unset). User-resized widths are
-       * kept in component state for the lifetime of the mount.
+       * starting width is `width` (or 240px if unset). User-resized widths
+       * live in the table slice alongside page / sort / visibility, so they
+       * survive unmount when the table is mounted with `persist`.
        */
       resizable?: boolean;
     }

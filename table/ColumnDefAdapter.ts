@@ -90,6 +90,6 @@ export function adaptColumns<T extends RowData>(
       base.accessorFn = (row: T) => resolvePath(row, c.field);
     }
 
-    return base as ColumnDef<T>;
+    return base as unknown as ColumnDef<T>;
   });
 }
