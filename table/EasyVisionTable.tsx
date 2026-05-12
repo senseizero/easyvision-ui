@@ -72,6 +72,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     getRowId: getRowIdProp,
     itemsPerPage: itemsPerPageProp = 10,
     itemsPerPageOptions = [10, 15, 20],
+    paginationDisplay = 'always',
     enableRowSelection = false,
     selectAllScope = 'toggleable',
     selectAllResolution = 'lazy',
@@ -911,15 +912,18 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
             </table>
           </div>
 
-          <PaginationFooter
-            currentPage={page}
-            totalCount={totalCount}
-            itemsPerPage={itemsPerPage}
-            itemsPerPageOptions={itemsPerPageOptions}
-            onPageChange={(p) => patch({ page: p })}
-            onItemsPerPageChange={(n) => patch({ itemsPerPage: n, page: 1 })}
-            labels={labels}
-          />
+          {paginationDisplay !== 'fixedTotalItems' && (
+            <PaginationFooter
+              currentPage={page}
+              totalCount={totalCount}
+              itemsPerPage={itemsPerPage}
+              itemsPerPageOptions={itemsPerPageOptions}
+              onPageChange={(p) => patch({ page: p })}
+              onItemsPerPageChange={(n) => patch({ itemsPerPage: n, page: 1 })}
+              labels={labels}
+              display={paginationDisplay}
+            />
+          )}
         </div>
       </div>
     </NamespaceProvider>

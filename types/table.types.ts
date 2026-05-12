@@ -201,6 +201,24 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
   itemsPerPage?: number;
   itemsPerPageOptions?: number[];
 
+  /**
+   * Controls how the pagination footer is displayed. Independent of
+   * `paginationMode` (which decides where slicing happens — local or api).
+   *
+   * - `'always'` (default): full footer — rows-per-page selector, item count,
+   *   page selector + nav. Matches the historical behavior.
+   * - `'fixedItemsPerPage'`: rows-per-page selector is hidden (the value is
+   *   considered fixed). Item count is always visible. Page selector + nav
+   *   appear only when `totalCount > itemsPerPage`. Good for tables where
+   *   the page size is a deliberate product choice but you still want
+   *   pagination on overflow.
+   * - `'fixedTotalItems'`: the footer is not rendered at all. Pair with a
+   *   large `itemsPerPage` so every row fits in a single page. Good for
+   *   short, naturally-bounded lists (a product's plans, conditions,
+   *   periods, …) where pagination is just noise.
+   */
+  paginationDisplay?: 'always' | 'fixedItemsPerPage' | 'fixedTotalItems';
+
   enableRowSelection?: boolean;
   selectAllScope?: 'page' | 'all' | 'toggleable';
   /**
