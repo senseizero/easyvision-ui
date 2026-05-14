@@ -1,6 +1,6 @@
 {
   "name": "@easyvision/easyvision-ui",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "A React component library for easyvision",
   "type": "module",
   "main": "./dist/index.cjs",

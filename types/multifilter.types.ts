@@ -80,7 +80,20 @@ export interface SelectorFieldDef<V extends string | number = string | number>
 export interface MultiSelectFieldDef<V extends string | number = string | number>
   extends MultifilterFieldBase {
   type: 'multiselect';
-  options: SelectorOption<V>[] | (() => Promise<SelectorOption<V>[]>);
+  /**
+   * The selectable options — a static array, or an async loader called once on
+   * mount. Optional when `searchOptions` is provided; still used (when present)
+   * to resolve labels for already-selected values.
+   */
+  options?: SelectorOption<V>[] | (() => Promise<SelectorOption<V>[]>);
+  /**
+   * Per-keystroke async search. When set, the popover's search box queries this
+   * (debounced) instead of filtering the static `options` list in memory — use
+   * for option sets too large to load up front, or that live behind an API.
+   * Labels of options the user picks are remembered for the session so the
+   * selected badges stay readable after the search box is cleared.
+   */
+  searchOptions?: (term: string) => Promise<SelectorOption<V>[]>;
 }
 
 export interface DateRangeFieldDef extends MultifilterFieldBase {

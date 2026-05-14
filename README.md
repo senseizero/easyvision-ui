@@ -353,6 +353,56 @@ Common base fields on every field def:
 }
 ```
 
+### Multiselect options: static, async, and live search
+
+A `'multiselect'` field draws its choices from `options` — either a static array or an async
+loader run **once on mount**:
+
+```tsx
+// static
+{ id: 'level', type: 'multiselect', field: 'level', label: 'Nivel',
+  options: [{ value: 'CRITICAL', label: 'Crítico' }, { value: 'HIGH', label: 'Alto' }] }
+
+// async — fetched once when the field mounts
+{ id: 'sector', type: 'multiselect', field: 'sectorId', label: 'Sector',
+  options: async () => (await api.getSectors()).map(s => ({ value: s.id, label: s.name })) }
+```
+
+For option sets too large to load up front — or that only exist behind a search API — a
+`'multiselect'` field can instead (or also) provide **`searchOptions`**: a per-keystroke async
+search wired to the popover's search box.
+
+```tsx
+{
+  id: 'sector',
+  type: 'multiselect',
+  field: 'sectorId',
+  label: 'Sector / CNAE',
+  // Called on every keystroke (debounced 300ms, matching EasyVisionInput).
+  // The popover lists whatever this resolves to.
+  searchOptions: async (term) => {
+    const rows = await api.searchSectors(term);
+    return rows.map((s) => ({ value: s.id, label: `${s.cnae} — ${s.name}` }));
+  },
+}
+```
+
+| | `options` | `searchOptions` |
+|---|---|---|
+| When it runs | once on mount | on every keystroke (debounced 300ms) |
+| Popover search box | filters the loaded list in memory | drives the query; results come from your fn |
+| Good for | small / bounded option sets | large sets, or options that live behind an API |
+
+Notes:
+- `options` is **optional** when `searchOptions` is set. You may supply both: `searchOptions`
+  powers the search box, while `options` (when present) still resolves labels for
+  already-selected values.
+- With `searchOptions` only, the widget caches the labels of options the user picks for the
+  session, so the selected badges stay readable after the search box is cleared. A value
+  persisted from a previous session but never re-searched falls back to showing its raw value
+  until it appears in a search result again.
+- Stale in-flight responses are discarded — only the latest query's results are shown.
+
 ### Pinned, chip, locked
 
 - **`pinned: true`** — always rendered in the pinned row, never has an X chip, never appears in the "+" popover.
