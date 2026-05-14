@@ -40,7 +40,7 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
     value === undefined || value === '' ? SENTINEL : String(value);
 
   return (
-    <div className="ev-mf-chip">
+    <div className="ev-mf-chip is-wrap">
       <span className="ev-mf-chip-label">
         {definition.label}
         {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:

@@ -1219,9 +1219,13 @@
 .ev-mf-chip-select-trigger:focus {
   outline: none;
 }
+.ev-mf-chip-select-trigger:hover {
+  color: hsl(var(--foreground, 222 47% 11%));
+}
 .ev-mf-chip-select-trigger .ev-select-trigger-icon {
   width: 0.875rem;
   height: 0.875rem;
+  opacity: 1;
 }
 .ev-mf-chip-number {
   height: 1.75rem;
