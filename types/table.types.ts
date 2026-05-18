@@ -94,6 +94,13 @@ export interface ApiFetchParams {
   sort: { column: string; descending: boolean } | null;
   /** Latest perform-confirmed multifilter query, when a multifilter is bound. */
   filter?: MultifilterQuery;
+  /**
+   * Hint that only the row id is needed. Set by the table during eager-ids
+   * select-all resolution so adapters can shrink the wire payload (e.g.
+   * Loopback's `fields: ['id']`, skipping `include`). Adapters that ignore
+   * this still work — they just send full rows that the table discards.
+   */
+  idsOnly?: boolean;
 }
 
 export interface ApiFetchResult<T> {

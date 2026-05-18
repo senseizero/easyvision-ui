@@ -943,13 +943,15 @@ What changes in `'eager'` mode (api only):
 
 Use `'eager-ids'` when the consumer only needs ids (bulk action by id, export by id, submit-by-id) and selections can reach the tens of thousands — `'eager'` would carry every row object across all pages, which is wasteful at that scale.
 
+**Wire-level payload reduction.** During eager-ids resolution the table sets `idsOnly: true` on each `fetchData` call. The built-in loopback adapter honors this by requesting `fields: ['id']` and dropping `include` for those calls — so the server returns only id objects, not full rows, dramatically shrinking the network payload for large selections. Custom `fetchData` implementations can read `params.idsOnly` and apply the same optimization (or ignore it — they'll still work, just sending more bytes than needed). The loopback adapter accepts an `idFields?: string[]` option (defaults to `['id']`) if your model's primary key is named differently.
+
 Trade-offs:
 
 | Mode | Network on select-all | Memory per selection | Reorder while selected | Untick individual rows | Best for |
 |---|---|---|---|---|---|
 | `'lazy'` (default) | none | O(page) | free | via `exceptIds` | export / submit flows; no list manipulation |
-| `'eager'` | one paginated sweep | O(all ids + all rows) | locked | via header toggle (adds visible rows to `exceptIds`) | preview / reorder / transform before submit; one-line consumer code |
-| `'eager-ids'` | one paginated sweep | O(all ids only) | locked | via header toggle (adds visible rows to `exceptIds`) | bulk action by id at scale (50k+); consumer only needs ids |
+| `'eager'` | one paginated sweep, full rows | O(all ids + all rows) | locked | via header toggle (adds visible rows to `exceptIds`) | preview / reorder / transform before submit; one-line consumer code |
+| `'eager-ids'` | one paginated sweep, **ids only** (loopback adapter) | O(all ids only) | locked | via header toggle (adds visible rows to `exceptIds`) | bulk action by id at scale (50k+); consumer only needs ids |
 
 Has no effect when `paginationMode === 'local'` (the table already knows the full set).
 

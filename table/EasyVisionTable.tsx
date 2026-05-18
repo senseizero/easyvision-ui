@@ -252,6 +252,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           itemsPerPage: PAGE_SIZE,
           sort,
           filter: merged,
+          idsOnly: !collectRows,
         });
         if (seq !== eagerSeqRef.current) return;
         knownTotal = result.totalCount;

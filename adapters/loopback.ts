@@ -65,18 +65,26 @@ export interface CreateLoopbackTableFetcherOptions<T> {
   fields?: string[];
   /** Order applied when the table has no active sort. */
   defaultOrder?: string[];
+  /**
+   * Field(s) requested when the table sets `idsOnly` (eager-ids select-all
+   * resolution). Defaults to `['id']`. Override if your model's primary key
+   * is named differently or if `getRowId` reads from another property.
+   */
+  idFields?: string[];
 }
 
 export function createLoopbackTableFetcher<T = unknown>(
   opts: CreateLoopbackTableFetcherOptions<T>
 ) {
-  const { fetchPage, fetchCount, include, fields, defaultOrder } = opts;
+  const { fetchPage, fetchCount, include, fields, defaultOrder, idFields } =
+    opts;
 
   return async ({
     page,
     itemsPerPage,
     sort,
     filter,
+    idsOnly,
   }: ApiFetchParams): Promise<ApiFetchResult<T>> => {
     const order = sort
       ? [`${sort.column} ${sort.descending ? 'DESC' : 'ASC'}`]
@@ -84,13 +92,18 @@ export function createLoopbackTableFetcher<T = unknown>(
     const skip = (page - 1) * itemsPerPage;
     const where: Record<string, any> = filter?.where ?? {};
 
+    // idsOnly overrides the configured `fields` whitelist and skips `include`
+    // (no point loading relations when the caller is throwing rows away).
+    const effectiveFields = idsOnly ? idFields ?? ['id'] : fields;
+    const effectiveInclude = idsOnly ? undefined : include;
+
     const pageFilter: LoopbackFilter = {
       where,
       skip,
       limit: itemsPerPage,
       order,
-      ...(include ? { include } : {}),
-      ...(fields ? { fields } : {}),
+      ...(effectiveInclude ? { include: effectiveInclude } : {}),
+      ...(effectiveFields ? { fields: effectiveFields } : {}),
     };
 
     const [rows, count] = await Promise.all([
