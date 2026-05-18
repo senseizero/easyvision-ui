@@ -901,14 +901,14 @@ type SelectionChange<T> =
 
 `'toggleable'` is the default UX: a chevron next to the header checkbox lets the user switch between "select page" and "select all". When the bound multifilter performs a new search, an `'all'` selection is cleared automatically (it would otherwise be stale).
 
-#### `selectAllResolution`: lazy vs eager wildcard
+#### `selectAllResolution`: lazy vs eager vs eager-ids wildcard
 
 By default, "select all matching" in api mode emits a `wildcard` event (the host page is responsible for materializing the full id list when needed). Pages that need the full id list **up front** — e.g. to preview, reorder, or run in-memory transforms before submitting — can opt into eager resolution:
 
 ```tsx
 <EasyVisionTable
   enableRowSelection
-  selectAllResolution="eager"     // 'lazy' (default) | 'eager'
+  selectAllResolution="eager"     // 'lazy' (default) | 'eager' | 'eager-ids'
   onSelectionChange={(event) => {
     // In eager mode, wildcard becomes mode: 'in-memory' with the full id list.
     setSelectedIds(event.ids);     // ← always complete; no resolveSelection helper needed
@@ -920,16 +920,36 @@ By default, "select all matching" in api mode emits a `wildcard` event (the host
 What changes in `'eager'` mode (api only):
 - The moment the user enters `'all'` scope, the table paginates `fetchData` with the active filter and captures every matching id.
 - The selection banner shows a spinner + "Cargando…" while resolving.
-- Once resolved, `onSelectionChange` fires with `{ scope: 'all', mode: 'in-memory', ids: [...full] }` (no `exceptIds`, no `wildcard`).
+- Once resolved, `onSelectionChange` fires with `{ scope: 'all', mode: 'in-memory', ids: [...full], rows: [...full] }` (no `exceptIds`, no `wildcard`).
 - **Column sorting is locked while a wildcard selection is active** — otherwise the captured id order would silently desync from the rendered view. Clearing the selection unlocks sort.
 - The cache is invalidated on multifilter perform, on `refetchSignal` change, and when leaving `'all'` scope; the next entry re-materializes.
 
+`'eager-ids'` is the same flow as `'eager'` but drops row objects during pagination — only the id list is materialized:
+
+```tsx
+<EasyVisionTable
+  enableRowSelection
+  selectAllResolution="eager-ids"
+  onSelectionChange={(event) => {
+    if (event.scope === 'all' && event.mode === 'in-memory-ids') {
+      // event.ids is the full set. event.rows does not exist on this variant —
+      // TypeScript will error if you try to read it.
+      deleteByIds(event.ids);
+    }
+  }}
+  loopback={{ ... }}
+/>
+```
+
+Use `'eager-ids'` when the consumer only needs ids (bulk action by id, export by id, submit-by-id) and selections can reach the tens of thousands — `'eager'` would carry every row object across all pages, which is wasteful at that scale.
+
 Trade-offs:
 
-| Mode | Network on select-all | Reorder while selected | Untick individual rows | Best for |
-|---|---|---|---|---|
-| `'lazy'` (default) | none | free | via `exceptIds` | export / submit flows; no list manipulation |
-| `'eager'` | one paginated sweep | locked | via header toggle (adds visible rows to `exceptIds`) | preview / reorder / transform before submit; one-line consumer code |
+| Mode | Network on select-all | Memory per selection | Reorder while selected | Untick individual rows | Best for |
+|---|---|---|---|---|---|
+| `'lazy'` (default) | none | O(page) | free | via `exceptIds` | export / submit flows; no list manipulation |
+| `'eager'` | one paginated sweep | O(all ids + all rows) | locked | via header toggle (adds visible rows to `exceptIds`) | preview / reorder / transform before submit; one-line consumer code |
+| `'eager-ids'` | one paginated sweep | O(all ids only) | locked | via header toggle (adds visible rows to `exceptIds`) | bulk action by id at scale (50k+); consumer only needs ids |
 
 Has no effect when `paginationMode === 'local'` (the table already knows the full set).
 
@@ -1070,7 +1090,7 @@ The toolbar row is hidden entirely when none of `toolbarLeft`, `toolbarRight`, o
 | `paginationDisplay` | `'always' \| 'fixedItemsPerPage' \| 'fixedTotalItems'` | `'always'` — footer rendering mode; see [Pagination footer modes](#pagination-footer-modes) |
 | `enableRowSelection` | `boolean` | `false` |
 | `selectAllScope` | `'page' \| 'all' \| 'toggleable'` | `'toggleable'` |
-| `selectAllResolution` | `'lazy' \| 'eager'` | `'lazy'` — `'eager'` materializes the full id list on wildcard select-all and locks sort while active |
+| `selectAllResolution` | `'lazy' \| 'eager' \| 'eager-ids'` | `'lazy'` — `'eager'` materializes the full id list + rows on wildcard select-all (locks sort); `'eager-ids'` is the same but skips row materialization, for bulk-by-id flows at scale |
 | `onSelectionChange` | `(event) => void` | — |
 | `isLoading` | `boolean` | `false` |
 | `emptyMessage` | `string` | labels.noData |

@@ -227,6 +227,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
   // sort so the captured order matches what the user just saw.
   const resolveEagerAll = useCallback(async () => {
     if (!fetchData) return;
+    const collectRows = selectAllResolution === 'eager';
     const seq = ++eagerSeqRef.current;
     setIsResolvingEager(true);
     try {
@@ -258,18 +259,18 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           const rid = getRowId(row);
           if (rid) {
             ids.push(rid);
-            rowsAcc.push(row);
+            if (collectRows) rowsAcc.push(row);
           }
         }
         if (result.rows.length < PAGE_SIZE) break;
       }
       if (seq !== eagerSeqRef.current) return;
       setEagerAllIds(ids);
-      setEagerAllRows(rowsAcc);
+      if (collectRows) setEagerAllRows(rowsAcc);
     } finally {
       if (seq === eagerSeqRef.current) setIsResolvingEager(false);
     }
-  }, [fetchData, externalFilter, sort, getRowId]);
+  }, [fetchData, externalFilter, sort, getRowId, selectAllResolution]);
 
   // refetchSignal also resets page to 1 (mirrors multifilter Buscar semantics).
   const prevRefetchRef = useRef(refetchSignal);
@@ -390,7 +391,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     : [];
 
   const isEagerWildcard =
-    selectAllResolution === 'eager' && isApi && selection.scope === 'all';
+    (selectAllResolution === 'eager' || selectAllResolution === 'eager-ids') &&
+    isApi &&
+    selection.scope === 'all';
 
   const tableInstance = useReactTable<T>({
     data: rows,
@@ -486,6 +489,21 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           outRows = eagerAllRows;
         }
         event = { scope: 'all', mode: 'in-memory', ids, rows: outRows };
+      } else if (selectAllResolution === 'eager-ids' && eagerAllIds) {
+        // Eager api wildcard, ids-only: emit the materialized id set, minus unticks.
+        // No rows field — caller cannot accidentally read row data that wasn't materialized.
+        const exceptSet = new Set(Object.keys(selection.exceptIds ?? {}));
+        let ids: string[];
+        if (exceptSet.size) {
+          ids = [];
+          for (const rid of eagerAllIds) {
+            if (exceptSet.has(rid)) continue;
+            ids.push(rid);
+          }
+        } else {
+          ids = eagerAllIds;
+        }
+        event = { scope: 'all', mode: 'in-memory-ids', ids };
       } else {
         const exceptIds = Object.keys(selection.exceptIds ?? {});
         const exceptSet = new Set(exceptIds);
@@ -505,7 +523,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
       const selectedRows = rows.filter((r) => idSet.has(getRowId(r)));
       event = { scope: 'page', ids, rows: selectedRows };
     }
-    const key = JSON.stringify({ ...event, rows: event.rows.length });
+    const key = JSON.stringify({
+      ...event,
+      rows: 'rows' in event ? event.rows.length : 0,
+    });
     if (key === lastSelectionEmittedRef.current) return;
     lastSelectionEmittedRef.current = key;
     onSelectionChange?.(event);
@@ -582,7 +603,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     (scope: 'page' | 'all') => {
       if (scope === 'all') {
         patch({ selection: { ids: {}, scope: 'all', exceptIds: {} } });
-        if (selectAllResolution === 'eager' && isApi) {
+        if (
+          (selectAllResolution === 'eager' || selectAllResolution === 'eager-ids') &&
+          isApi
+        ) {
           setEagerAllIds(null);
           setEagerAllRows([]);
           void resolveEagerAll();

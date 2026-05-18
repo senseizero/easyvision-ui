@@ -333,6 +333,32 @@ function TableSection() {
         </div>
       </div>
 
+      <div className="mt-4 min-w-0">
+        <h3 className="text-sm font-medium mb-2">
+          API mode + <code>selectAllResolution="eager-ids"</code> (paginates id list only — no rows materialized)
+        </h3>
+        <EasyVisionTable<DemoRow>
+          id="apiTableEagerIds"
+          paginationMode="api"
+          orderingMode="api"
+          fetchData={fakeFetch}
+          getRowId={(r) => r.id}
+          columns={TABLE_COLUMNS}
+          enableRowSelection
+          selectAllScope="toggleable"
+          selectAllResolution="eager-ids"
+          onSelectionChange={setSelectionLog}
+          onRowClick={(row) => setHighlightedId(row.id)}
+          isRowHighlighted={(row) => row.id === highlightedId}
+          multifilter={{
+            id: 'apiFilterEagerIds',
+            config: localMultifilter,
+            performButton: true,
+            performOnMount: false,
+          }}
+        />
+      </div>
+
       <div className="mt-3 flex items-center gap-3">
         <span className="text-sm">
           <strong>Highlighted row:</strong>{' '}

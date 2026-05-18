@@ -104,6 +104,7 @@ export interface ApiFetchResult<T> {
 export type SelectionChange<T = unknown> =
   | { scope: 'page'; ids: string[]; rows: T[] }
   | { scope: 'all'; mode: 'in-memory'; ids: string[]; rows: T[] }
+  | { scope: 'all'; mode: 'in-memory-ids'; ids: string[] }
   | { scope: 'all'; mode: 'wildcard'; ids: string[]; exceptIds: string[]; rows: T[] };
 
 export interface TableLabels {
@@ -238,10 +239,17 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
    *   the rendered view). Best for flows that need the full id list up
    *   front (preview, reorder, in-memory transforms before submit).
    *
+   * - `'eager-ids'`: like `'eager'` but only materializes ids — row objects
+   *   are dropped as they are paginated. Emits
+   *   `{ scope: 'all', mode: 'in-memory-ids', ids: [...full] }` (no `rows`).
+   *   Same sort lock as `'eager'`. Use when the consumer only needs ids
+   *   (bulk action by id, export by id) and carrying every row in memory
+   *   is wasteful — e.g. selections of 50k+ rows.
+   *
    * Has no effect when `paginationMode === 'local'` (the table already
    * knows the full set in memory).
    */
-  selectAllResolution?: 'lazy' | 'eager';
+  selectAllResolution?: 'lazy' | 'eager' | 'eager-ids';
   onSelectionChange?: (event: SelectionChange<T>) => void;
 
   isLoading?: boolean;
