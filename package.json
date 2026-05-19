@@ -1,6 +1,6 @@
 {
   "name": "@easyvision/easyvision-ui",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "description": "A React component library for easyvision",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -23,7 +23,8 @@
   ],
   "scripts": {
     "build": "tsup && node postbuild.cjs",
-    "prepublishOnly": "tsup && node postbuild.cjs"
+    "prepublishOnly": "tsup && node postbuild.cjs",
+    "dev": "vite"
   },
   "peerDependencies": {
     "react": "^18 || ^19",
@@ -49,10 +50,12 @@
   "devDependencies": {
     "@types/react": "^18.1.0",
     "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.7.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "tsup": "^8.3.5",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vite": "^5.4.21"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

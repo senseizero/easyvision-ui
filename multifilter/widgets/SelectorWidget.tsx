@@ -21,6 +21,7 @@ export interface SelectorWidgetProps {
 }
 
 export function SelectorWidget({ definition, value, onChange, onRemove }: SelectorWidgetProps) {
+  const [open, setOpen] = useState(false);
   const [resolved, setResolved] = useState<SelectorOption[] | null>(
     Array.isArray(definition.options) ? (definition.options as SelectorOption[]) : null
   );
@@ -41,11 +42,16 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
 
   return (
     <div className="ev-mf-chip is-wrap">
-      <span className="ev-mf-chip-label">
+      <span
+        className="ev-mf-chip-label is-clickable"
+        onClick={() => setOpen(true)}
+      >
         {definition.label}
         {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       <Select
+        open={open}
+        onOpenChange={setOpen}
         value={selectValue}
         onValueChange={(raw) => {
           if (raw === SENTINEL) onChange(undefined);

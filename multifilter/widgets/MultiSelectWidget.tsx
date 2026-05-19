@@ -24,6 +24,7 @@ export function MultiSelectWidget({
   onRemove,
 }: MultiSelectWidgetProps) {
   const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
   const searchFn = definition.searchOptions;
   const hasSearchOptions = typeof searchFn === 'function';
 
@@ -105,7 +106,10 @@ export function MultiSelectWidget({
 
   return (
     <div className="ev-mf-chip is-wrap">
-      <span className="ev-mf-chip-label">
+      <span
+        className="ev-mf-chip-label is-clickable"
+        onClick={() => setOpen(true)}
+      >
         {definition.label}
         {definition.mandatory && <span className="ev-mf-chip-required">*</span>}
         :
@@ -122,7 +126,7 @@ export function MultiSelectWidget({
           </button>
         </span>
       ))}
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button type="button" className="ev-mf-chip-caret">
             <ChevronDown />
