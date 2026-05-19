@@ -214,6 +214,7 @@
 
 /* ---------- Checkbox ---------- */
 .ev-checkbox {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -225,6 +226,14 @@
   background: transparent;
   color: hsl(var(--primary, 222 47% 11%));
   cursor: pointer;
+}
+/* Expand the click target without changing the visual size. The pseudo-element
+ * is part of the button, so clicks on it trigger the checkbox and any
+ * stopPropagation handler the consumer attached (e.g. table rows). */
+.ev-checkbox::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
 }
 .ev-checkbox:focus-visible {
   outline: 2px solid hsl(var(--ring, 215 20% 65%));
@@ -311,12 +320,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* The trigger is the <button>; children should never swallow the click so
+   * the entire visible button area always behaves as the hit target. */
+  pointer-events: none;
 }
 .ev-select-trigger-icon {
   height: 1rem;
   width: 1rem;
   opacity: 0.5;
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 /* Bare trigger variant used inside chips */
@@ -1204,6 +1217,7 @@
   outline: none;
 }
 .ev-mf-chip-select-trigger {
+  position: relative;
   height: auto;
   width: auto;
   min-width: 0;
@@ -1215,6 +1229,13 @@
   font-size: 0.75rem;
   line-height: 1rem;
   color: hsl(var(--muted-foreground, 215 16% 47%));
+}
+/* The chip trigger has no padding so the visible click area is just text+icon.
+ * Extend the hit target without changing visual size. */
+.ev-mf-chip-select-trigger::before {
+  content: "";
+  position: absolute;
+  inset: -0.375rem -0.25rem;
 }
 .ev-mf-chip-select-trigger:focus {
   outline: none;
