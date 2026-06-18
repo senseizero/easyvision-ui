@@ -13,6 +13,7 @@ export {
   EasyVisionCardFooter,
 } from './card/EasyVisionCard';
 export type { MultifilterHandle } from './multifilter/EasyVisionMultifilter';
+export { EasyVisionAccordion, EasyVisionAccordionItem } from './accordion/EasyVisionAccordion';
 export { EasyVisionTable } from './table/EasyVisionTable';
 export { easyVisionRegistry, getSlice } from './store/registry';
 
@@ -44,6 +45,12 @@ export type {
   ApiFetchResult,
   SelectionChange,
 } from './types/table.types';
+export type {
+  EasyVisionAccordionProps,
+  EasyVisionAccordionItemProps,
+  AccordionItem,
+  AccordionMode,
+} from './types/accordion.types';
 export type { BaseStatefulProps, SelectorOption } from './types/common.types';
 export { defaultCell } from './lib/defaultCell';
 

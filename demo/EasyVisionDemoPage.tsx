@@ -6,8 +6,10 @@ import {
   EasyVisionSelector,
   EasyVisionMultifilter,
   EasyVisionTable,
+  EasyVisionAccordion,
   easyVisionRegistry,
 } from '../index';
+import type { AccordionItem, AccordionMode } from '../index';
 import type {
   ApiFetchParams,
   ApiFetchResult,
@@ -385,6 +387,68 @@ function TableSection() {
   );
 }
 
+function AccordionSection() {
+  const [mode, setMode] = useState<AccordionMode>('single');
+
+  const faqItems = useMemo<AccordionItem[]>(
+    () => [
+      {
+        id: 'plain',
+        question: 'Plain text answer',
+        content: <p className="text-foreground">Just a string body rendered as a paragraph.</p>,
+      },
+      {
+        id: 'rich',
+        question: 'Free-format JSX answer',
+        content: (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Any ReactNode works as the body:</p>
+            <div className="grid grid-cols-3 gap-2">
+              {['A', 'B', 'C'].map((k) => (
+                <div key={k} className="rounded border p-3 text-center text-sm">
+                  Card {k}
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'open',
+        question: 'Starts expanded (defaultOpen)',
+        defaultOpen: true,
+        content: <p className="text-foreground">This item opened on mount.</p>,
+      },
+      {
+        id: 'disabled',
+        question: 'Disabled item',
+        disabled: true,
+        content: <p>You should not be able to open me.</p>,
+      },
+    ],
+    []
+  );
+
+  return (
+    <EasyVisionCard className="rounded-lg p-4">
+      <h2 className="text-lg font-semibold mb-3">4. Accordion (unfoldable questions)</h2>
+      <div className="flex items-center gap-3 mb-3">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setMode((m) => (m === 'single' ? 'multiple' : 'single'))}
+        >
+          mode: {mode}
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          Toggle single (one open at a time) vs multiple.
+        </span>
+      </div>
+      <EasyVisionAccordion mode={mode} items={faqItems} />
+    </EasyVisionCard>
+  );
+}
+
 export default function EasyVisionDemoPage() {
   return (
     <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
@@ -397,6 +461,7 @@ export default function EasyVisionDemoPage() {
       <PrimitivesSection />
       <MultifilterSection />
       <TableSection />
+      <AccordionSection />
     </div>
   );
 }

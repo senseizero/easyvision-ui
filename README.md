@@ -21,6 +21,7 @@ import {
   - [`clearWhen`](#clearwhen)
   - [Labels (i18n)](#labels-i18n)
 - [`EasyVisionCard`](#easyvisioncard)
+- [`EasyVisionAccordion`](#easyvisionaccordion)
 - [`EasyVisionInput`](#easyvisioninput)
 - [`EasyVisionSelector`](#easyvisionselector)
 - [`EasyVisionMultifilter`](#easyvisionmultifilter)
@@ -187,6 +188,91 @@ import {
   comes from `EasyVisionCardContent` (`p-6 pt-0`) — when there's no header,
   use `<EasyVisionCardContent className="pt-6">` or just put your content
   in a plain wrapper.
+
+---
+
+## `EasyVisionAccordion`
+
+A list of **unfoldable questions** (FAQ-style). Holds an indefinite number of
+items and accepts **free-format content** — both the `question` header and the
+body are `ReactNode`, so an answer can be plain text or arbitrary JSX (tables,
+tabs, lists, charts…).
+
+Like `EasyVisionCard`, it's self-contained and **does not** use the `id`/slice
+machinery — open/closed is ephemeral UI state held locally (optionally
+controlled). Visuals rely only on the standard Tailwind theme tokens
+(`muted`, `card`, `border`, `foreground`) via `.ev-accordion*` classes.
+
+### Minimal usage (data-driven)
+
+```tsx
+import { EasyVisionAccordion } from '@easyvision/easyvision-ui';
+
+<EasyVisionAccordion
+  items={[
+    { id: 'what', question: '¿Qué es NML Vision?', content: <p>…</p> },
+    { id: 'scoring', question: '¿Cómo funciona el scoring?', content: <ScoringTable /> },
+  ]}
+/>
+```
+
+The `items` array can be any length and built dynamically (filter/spread for
+conditional questions) — the FAQ list is not fixed at compile time.
+
+### Compound usage
+
+Equivalent, when you'd rather write the bodies inline as children:
+
+```tsx
+import { EasyVisionAccordion, EasyVisionAccordionItem } from '@easyvision/easyvision-ui';
+
+<EasyVisionAccordion mode="multiple">
+  <EasyVisionAccordionItem id="what" question="¿Qué es NML Vision?">
+    <p>…</p>
+  </EasyVisionAccordionItem>
+  <EasyVisionAccordionItem id="scoring" question="¿Cómo funciona el scoring?">
+    <ScoringTable />
+  </EasyVisionAccordionItem>
+</EasyVisionAccordion>
+```
+
+> Mix-and-match is not supported in a single instance: pass **either** `items`
+> **or** `EasyVisionAccordionItem` children. If `items` is provided, children
+> are ignored.
+
+### Open behaviour
+
+- `mode="single"` (default) — one item open at a time, like the NML Vision Help
+  page. `mode="multiple"` — items open independently.
+- Uncontrolled: set `defaultOpenIds={['scoring']}` or per-item `defaultOpen`.
+- Controlled: pass `openIds` + `onOpenChange` to own the state. Use
+  `onOpenChange` to lazily fetch a question's data the first time it opens (the
+  callback receives the next list of open ids).
+
+### Props
+
+#### `EasyVisionAccordion`
+
+| prop | type | default | notes |
+|---|---|---|---|
+| `items` | `AccordionItem[]` | — | Data-driven items. Omit when using children. |
+| `children` | `ReactNode` | — | `EasyVisionAccordionItem` elements (alternative to `items`). |
+| `mode` | `'single' \| 'multiple'` | `'single'` | Open behaviour. |
+| `openIds` | `string[]` | — | Controlled set of open ids. |
+| `defaultOpenIds` | `string[]` | — | Uncontrolled initial open ids. |
+| `onOpenChange` | `(openIds: string[]) => void` | — | Fired on every open/close. |
+| `className` | `string` | — | Merged with `ev-accordion`. |
+
+`AccordionItem` / `EasyVisionAccordionItem` fields: `id` (required, stable key),
+`question` (`ReactNode`), `content` / children (`ReactNode` body), optional
+`defaultOpen` and `disabled`.
+
+### Notes
+
+- Each item renders an accessible trigger (`<button>` with `aria-expanded` /
+  `aria-controls`) and a `role="region"` panel.
+- The chevron rotates on open; collapsed panels are unmounted (not hidden), so
+  heavy bodies don't render until first opened.
 
 ---
 
