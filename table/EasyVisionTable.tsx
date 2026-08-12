@@ -449,6 +449,14 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
+    // TanStack picks the first sort direction per column by sniffing row 0 of
+    // the *current* page (`getAutoSortDir`: string → asc, anything else → desc).
+    // With server-side data that row changes between clicks, so the asc/desc/off
+    // cycle collapses — e.g. a nullable date column whose page-1 ASC result leads
+    // with a null row flips firstSortDir to 'desc' and the next click removes the
+    // sort instead of going descending. Pin it so the cycle is always off → asc
+    // → desc → off, on every page.
+    sortDescFirst: false,
     enableColumnResizing: true,
     columnResizeMode: 'onChange',
     pageCount: Math.ceil(totalCount / itemsPerPage),
