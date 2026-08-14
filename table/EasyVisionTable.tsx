@@ -24,13 +24,16 @@ import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
 import { adaptColumns, shouldDisableSorting } from './ColumnDefAdapter';
 import { useTableData } from './useTableData';
-import { resolveColumnVisibility } from './columnVisibility';
+import { applySelection } from './applySelection';
+import { resolveColumnVisibility, isColumnVisible } from './columnVisibility';
 import { fetchAllRows, mergeFilters } from './fetchAllRows';
 import { SelectAllControl } from './SelectAllControl';
 import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
 import { EasyVisionMultifilter, type MultifilterHandle } from '../multifilter/EasyVisionMultifilter';
 import { createLoopbackTableFetcher, matchLoopbackWhere } from '../adapters/loopback';
+import { registerExportSource, unregisterExportSource } from '../export/sources';
+import { toExportColumns } from '../export/exportColumns';
 import type {
   EasyVisionTableProps,
   SelectionChange,
@@ -328,6 +331,68 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     () => resolveColumnVisibility(columns, slice.columnVisibility),
     [columns, slice.columnVisibility]
   );
+
+  // Export wiring. Everything the export needs is read through this ref at
+  // export time rather than captured at registration time, so a column toggle,
+  // a new multifilter query, or a fresh fetcher identity all take effect
+  // without re-registering.
+  const exportStateRef = useRef({
+    columns,
+    columnVisibility,
+    selection,
+    fetchData,
+    externalFilter,
+    sort,
+    filteredData,
+    isApi,
+    getRowId,
+    sheetName: id,
+  });
+  exportStateRef.current = {
+    columns,
+    columnVisibility,
+    selection,
+    fetchData,
+    externalFilter,
+    sort,
+    filteredData,
+    isApi,
+    getRowId,
+    sheetName: id,
+  };
+
+  useEffect(() => {
+    registerExportSource(fullId, {
+      sheetName: id,
+      getColumns: () => {
+        const state = exportStateRef.current;
+        return toExportColumns(state.columns, (field) =>
+          isColumnVisible(state.columnVisibility, field)
+        );
+      },
+      getRows: async () => {
+        const state = exportStateRef.current;
+        let all: T[];
+        if (state.isApi && state.fetchData) {
+          all =
+            (await fetchAllRows<T>({
+              fetchData: state.fetchData,
+              filter: mergeFilters(
+                state.externalFilter,
+                lastSnapshotRef.current?.query
+              ),
+              sort: state.sort,
+            })) ?? [];
+        } else {
+          // Local mode already holds the filtered set in memory.
+          all = state.filteredData ?? [];
+        }
+        return applySelection(all, state.selection, state.getRowId);
+      },
+    });
+    return () => unregisterExportSource(fullId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullId, id]);
 
   // Sizing: only persisted for columns currently marked `resizable: true`.
   // Drag events from TanStack arrive only for resizable columns anyway, but
