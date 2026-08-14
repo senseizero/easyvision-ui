@@ -6,6 +6,7 @@ import type {
   MultifilterQuery,
 } from './multifilter.types';
 import type { CreateLoopbackTableFetcherOptions, LoopbackFilter } from '../adapters/loopback';
+import type { ExportCellStyle, ExportCellValue } from './export.types';
 
 export type TableMode = 'local' | 'api';
 
@@ -71,6 +72,29 @@ export type EasyVisionColumn<T> =
        * survive unmount when the table is mounted with `persist`.
        */
       resizable?: boolean;
+      /**
+       * Header text in an exported sheet. Defaults to `header` when it is a
+       * plain string, otherwise to `field`.
+       */
+      exportHeader?: string;
+      /**
+       * Cell value in an exported sheet. Defaults to the value at `field`,
+       * with arrays joined by ", ". Use this to format dates, map codes to
+       * labels, or reach into fields the column doesn't render.
+       */
+      exportValue?: (item: T) => ExportCellValue;
+      /**
+       * Per-cell styling in an exported sheet. Return ARGB colour strings
+       * (alpha first, e.g. 'FFDC2626'). Return undefined to leave the cell
+       * unstyled.
+       */
+      exportStyle?: (value: ExportCellValue, item: T) => ExportCellStyle | undefined;
+      /**
+       * Include this column in exports. Defaults to true for `data` columns
+       * and false for `ui` columns — set it true on a `ui` column alongside an
+       * `exportValue` to export a computed column.
+       */
+      exportable?: boolean;
     }
   | {
       type: 'ui';
@@ -86,6 +110,29 @@ export type EasyVisionColumn<T> =
       truncate?: boolean;
       /** See data-column docs. */
       resizable?: boolean;
+      /**
+       * Header text in an exported sheet. Defaults to `header` when it is a
+       * plain string, otherwise to `field`.
+       */
+      exportHeader?: string;
+      /**
+       * Cell value in an exported sheet. Defaults to the value at `field`,
+       * with arrays joined by ", ". Use this to format dates, map codes to
+       * labels, or reach into fields the column doesn't render.
+       */
+      exportValue?: (item: T) => ExportCellValue;
+      /**
+       * Per-cell styling in an exported sheet. Return ARGB colour strings
+       * (alpha first, e.g. 'FFDC2626'). Return undefined to leave the cell
+       * unstyled.
+       */
+      exportStyle?: (value: ExportCellValue, item: T) => ExportCellStyle | undefined;
+      /**
+       * Include this column in exports. Defaults to true for `data` columns
+       * and false for `ui` columns — set it true on a `ui` column alongside an
+       * `exportValue` to export a computed column.
+       */
+      exportable?: boolean;
     };
 
 export interface ApiFetchParams {
