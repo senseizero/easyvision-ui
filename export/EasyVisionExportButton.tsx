@@ -3,8 +3,7 @@ import { useCallback, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useParentFullId } from '../store/NamespaceContext';
-import { childFullIdOf } from '../store/namespace';
-import { getExportSource } from './sources';
+import { resolveExportSource } from './sources';
 import { exportSheets } from './buildWorkbook';
 import type {
   EasyVisionExportButtonProps,
@@ -16,8 +15,6 @@ const DEFAULT_LABELS: ExportLabels = {
   export: 'Exportar',
   exporting: 'Exportando...',
 };
-
-const TABLE_SUFFIX = '-table';
 
 export function EasyVisionExportButton({
   tables,
@@ -41,10 +38,7 @@ export function EasyVisionExportButton({
       // Sequential on purpose: each source may page through a large result
       // set, and running those loops concurrently invites rate-limiting.
       for (const tableId of tables) {
-        const fullId = tableId.endsWith(TABLE_SUFFIX)
-          ? tableId
-          : childFullIdOf(parentFullId, tableId, 'table');
-        const source = getExportSource(fullId);
+        const source = resolveExportSource(parentFullId, tableId);
         if (!source) continue;
         sheets.push({
           name: sheetNames?.[tableId] ?? source.sheetName,

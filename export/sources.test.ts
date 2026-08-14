@@ -3,6 +3,7 @@ import {
   clearExportSources,
   getExportSource,
   registerExportSource,
+  resolveExportSource,
   unregisterExportSource,
 } from './sources';
 import type { ExportSource } from '../types/export.types';
@@ -47,5 +48,38 @@ describe('export source registry', () => {
 
   it('tolerates unregistering an id that was never registered', () => {
     expect(() => unregisterExportSource('ghost-table')).not.toThrow();
+  });
+});
+
+describe('resolveExportSource', () => {
+  beforeEach(() => clearExportSources());
+
+  it('resolves a bare local id via its namespaced registration', () => {
+    registerExportSource('orders-table', sourceNamed('Orders'));
+    expect(resolveExportSource(null, 'orders')?.sheetName).toBe('Orders');
+  });
+
+  it('resolves a local id that itself ends in -table', () => {
+    // Regression: `orders-table` registers under `orders-table-table`
+    // (childFullIdOf appends the suffix mechanically), so looking it up must
+    // not treat the local id as already fully-qualified.
+    registerExportSource('orders-table-table', sourceNamed('Orders'));
+    expect(resolveExportSource(null, 'orders-table')?.sheetName).toBe('Orders');
+  });
+
+  it('falls back to a fully-qualified id verbatim', () => {
+    registerExportSource('page-table.alerts-table', sourceNamed('Alertas'));
+    expect(
+      resolveExportSource(null, 'page-table.alerts-table')?.sheetName
+    ).toBe('Alertas');
+  });
+
+  it('returns undefined when nothing matches', () => {
+    expect(resolveExportSource(null, 'ghost')).toBeUndefined();
+  });
+
+  it('resolves a local id inside a namespace', () => {
+    registerExportSource('page-table.orders-table', sourceNamed('Orders'));
+    expect(resolveExportSource('page-table', 'orders')?.sheetName).toBe('Orders');
   });
 });
