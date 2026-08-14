@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildWorkbook } from './buildWorkbook';
+import { buildWorkbook, sanitizeSheetName } from './buildWorkbook';
 import type { SheetSpec } from '../types/export.types';
 
 interface Row {
@@ -115,5 +115,79 @@ describe('buildWorkbook', () => {
     // unlike `Date.prototype.toString()`, which varies in both length and
     // content by locale/timezone. max(10, 24+2) = 26.
     expect(ws.getColumn(1).width).toBe(26);
+  });
+});
+
+const sheetOf = (name: string, rows: Row[] = ROWS): SheetSpec<Row> => ({
+  name,
+  columns: [{ header: 'Nombre', getValue: (r) => r.name }],
+  rows,
+});
+
+describe('sanitizeSheetName', () => {
+  it('replaces the characters Excel forbids', () => {
+    expect(sanitizeSheetName('a*b?c:d\\e/f[g]h')).toBe('a-b-c-d-e-f-g-h');
+  });
+
+  it('truncates to 31 characters', () => {
+    expect(sanitizeSheetName('x'.repeat(40))).toHaveLength(31);
+  });
+
+  it('falls back to a placeholder for an empty name', () => {
+    expect(sanitizeSheetName('')).toBe('Hoja');
+  });
+});
+
+describe('buildWorkbook multi-sheet', () => {
+  it('writes one sheet per spec, in the order given', async () => {
+    const workbook = await buildWorkbook([sheetOf('Alertas'), sheetOf('Clientes')]);
+    expect(workbook!.worksheets.map((w) => w.name)).toEqual(['Alertas', 'Clientes']);
+  });
+
+  it('de-duplicates names that collide after sanitizing', async () => {
+    const workbook = await buildWorkbook([
+      sheetOf('Riesgo/Alto'),
+      sheetOf('Riesgo:Alto'),
+      sheetOf('Riesgo?Alto'),
+    ]);
+    expect(workbook!.worksheets.map((w) => w.name)).toEqual([
+      'Riesgo-Alto',
+      'Riesgo-Alto_2',
+      'Riesgo-Alto_3',
+    ]);
+  });
+
+  it('keeps de-duplicated names within 31 characters', async () => {
+    const long = 'y'.repeat(40);
+    const workbook = await buildWorkbook([sheetOf(long), sheetOf(long)]);
+    const names = workbook!.worksheets.map((w) => w.name);
+    expect(names[1]).toHaveLength(31);
+    expect(names[1].endsWith('_2')).toBe(true);
+  });
+
+  it('does not collide with a real sheet already named like a dedupe suffix', async () => {
+    const workbook = await buildWorkbook([
+      sheetOf('Datos'),
+      sheetOf('Datos_2'),
+      sheetOf('Datos'),
+    ]);
+    expect(workbook!.worksheets.map((w) => w.name)).toEqual([
+      'Datos',
+      'Datos_2',
+      'Datos_3',
+    ]);
+  });
+
+  it('skips sheets with no rows and sheets with no columns', async () => {
+    const workbook = await buildWorkbook([
+      sheetOf('Vacia', []),
+      { name: 'SinColumnas', columns: [], rows: ROWS },
+      sheetOf('Alertas'),
+    ]);
+    expect(workbook!.worksheets.map((w) => w.name)).toEqual(['Alertas']);
+  });
+
+  it('returns null when every sheet is skipped', async () => {
+    expect(await buildWorkbook([sheetOf('Vacia', [])])).toBeNull();
   });
 });

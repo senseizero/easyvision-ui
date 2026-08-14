@@ -6,6 +6,34 @@ const MIN_COLUMN_WIDTH = 10;
 const COLUMN_WIDTH_PADDING = 2;
 const XLSX_MIME =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const INVALID_SHEET_CHARS = /[*?:\\/[\]]/g;
+const MAX_SHEET_NAME = 31;
+const FALLBACK_SHEET_NAME = 'Hoja';
+
+export const sanitizeSheetName = (name: string): string =>
+  name.replace(INVALID_SHEET_CHARS, '-').substring(0, MAX_SHEET_NAME) ||
+  FALLBACK_SHEET_NAME;
+
+/**
+ * ExcelJS throws on duplicate worksheet names, so this must always return a
+ * name not already used. Tracking final names (not bases) means a generated
+ * `Foo_2` cannot collide with a source sheet genuinely called `Foo_2`.
+ */
+const uniqueSheetName = (raw: string, taken: Set<string>): string => {
+  const base = sanitizeSheetName(raw);
+  if (!taken.has(base)) {
+    taken.add(base);
+    return base;
+  }
+  for (let n = 2; ; n++) {
+    const suffix = `_${n}`;
+    const candidate = base.substring(0, MAX_SHEET_NAME - suffix.length) + suffix;
+    if (!taken.has(candidate)) {
+      taken.add(candidate);
+      return candidate;
+    }
+  }
+};
 
 export interface ExportSheetsOptions {
   /** Timestamp and `.xlsx` are appended. */
@@ -51,12 +79,16 @@ const autoFitColumns = (worksheet: ExcelJS.Worksheet): void => {
 export async function buildWorkbook<T>(
   sheets: SheetSpec<T>[]
 ): Promise<ExcelJS.Workbook | null> {
-  if (sheets.length === 0) return null;
+  const usable = sheets.filter(
+    (sheet) => sheet.rows.length > 0 && sheet.columns.length > 0
+  );
+  if (usable.length === 0) return null;
 
   const workbook = new ExcelJS.Workbook();
+  const takenNames = new Set<string>();
 
-  for (const sheet of sheets) {
-    const worksheet = workbook.addWorksheet(sheet.name);
+  for (const sheet of usable) {
+    const worksheet = workbook.addWorksheet(uniqueSheetName(sheet.name, takenNames));
 
     const headerRow = worksheet.addRow(sheet.columns.map((c) => c.header));
     headerRow.eachCell((cell) => {
