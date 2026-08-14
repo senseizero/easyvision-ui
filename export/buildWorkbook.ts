@@ -30,8 +30,14 @@ const autoFitColumns = (worksheet: ExcelJS.Worksheet): void => {
   worksheet.columns.forEach((column) => {
     let longest = 0;
     column.eachCell?.({ includeEmpty: false }, (cell) => {
+      // `cell.text` is exceljs's rendered-text accessor and already reports ''
+      // for a null cell, so no separate null case is needed. But with no
+      // `numFmt` set, a Date's `.text` falls back to `Date.prototype.toString()`
+      // — long and timezone-dependent — so dates are measured via their fixed-
+      // length ISO string instead (same convention as the filename timestamp
+      // in `exportSheets` below).
       const length =
-        cell.value == null ? MIN_COLUMN_WIDTH : String(cell.value).length;
+        cell.value instanceof Date ? cell.value.toISOString().length : cell.text.length;
       if (length > longest) longest = length;
     });
     column.width = Math.max(MIN_COLUMN_WIDTH, longest + COLUMN_WIDTH_PADDING);

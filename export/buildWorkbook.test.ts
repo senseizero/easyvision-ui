@@ -73,4 +73,47 @@ describe('buildWorkbook', () => {
     expect(sheet.getColumn(1).width).toBe(10); // 'Nombre' is 6 → floor
     expect(sheet.getColumn(2).width).toBe(12); // 'Puntuación' is 10 → +2
   });
+
+  it('measures a null cell as zero-length, not the floor', async () => {
+    interface NoteRow {
+      note: string | null;
+      status: string;
+    }
+    const sheet: SheetSpec<NoteRow> = {
+      name: 'Notes',
+      columns: [
+        { header: 'Note', getValue: (r) => r.note },
+        { header: 'Status', getValue: (r) => r.status },
+      ],
+      // The row survives because `status` is non-null; `note` alone is null.
+      rows: [{ note: null, status: 'ok' }],
+    };
+
+    const workbook = await buildWorkbook([sheet]);
+    const ws = workbook!.getWorksheet('Notes')!;
+
+    // Longest rendered value in column 1 is the header 'Note' (4 chars); the
+    // null data cell contributes 0, not the 10-char floor. max(10, 4+2) = 10.
+    expect(ws.getColumn(1).width).toBe(10);
+  });
+
+  it('measures a Date cell by its fixed-length ISO string, not a locale-dependent toString()', async () => {
+    interface DateRow {
+      when: Date;
+    }
+    const sheet: SheetSpec<DateRow> = {
+      name: 'Dates',
+      columns: [{ header: 'When', getValue: (r) => r.when }],
+      rows: [{ when: new Date('2026-01-01T00:00:00.000Z') }],
+    };
+
+    const workbook = await buildWorkbook([sheet]);
+    const ws = workbook!.getWorksheet('Dates')!;
+
+    // `Date.prototype.toISOString()` is always exactly 24 characters
+    // ("2026-01-01T00:00:00.000Z"), independent of the machine's timezone —
+    // unlike `Date.prototype.toString()`, which varies in both length and
+    // content by locale/timezone. max(10, 24+2) = 26.
+    expect(ws.getColumn(1).width).toBe(26);
+  });
 });
