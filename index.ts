@@ -15,6 +15,14 @@ export {
 export type { MultifilterHandle } from './multifilter/EasyVisionMultifilter';
 export { EasyVisionAccordion, EasyVisionAccordionItem } from './accordion/EasyVisionAccordion';
 export { EasyVisionTable } from './table/EasyVisionTable';
+export { EasyVisionExportButton } from './export/EasyVisionExportButton';
+export {
+  buildWorkbook,
+  exportSheets,
+  sanitizeSheetName,
+  downloadBlob,
+} from './export/buildWorkbook';
+export { toExportColumns } from './export/exportColumns';
 export { easyVisionRegistry, getSlice } from './store/registry';
 
 export type { EasyVisionInputProps } from './types/input.types';
@@ -45,6 +53,15 @@ export type {
   ApiFetchResult,
   SelectionChange,
 } from './types/table.types';
+export type {
+  ExportSource,
+  ExportColumnSpec,
+  ExportCellValue,
+  ExportCellStyle,
+  SheetSpec,
+  ExportLabels,
+  EasyVisionExportButtonProps,
+} from './types/export.types';
 export type {
   EasyVisionAccordionProps,
   EasyVisionAccordionItemProps,
