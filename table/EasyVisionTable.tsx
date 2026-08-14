@@ -25,6 +25,7 @@ import { NamespaceProvider } from '../store/NamespaceContext';
 import { adaptColumns, shouldDisableSorting } from './ColumnDefAdapter';
 import { useTableData } from './useTableData';
 import { resolveColumnVisibility } from './columnVisibility';
+import { fetchAllRows, mergeFilters } from './fetchAllRows';
 import { SelectAllControl } from './SelectAllControl';
 import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
@@ -189,20 +190,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     const seq = ++fetchSeqRef.current;
     setApiLoading(true);
     try {
-      // Merge externally-driven filter (e.g. from a bespoke search panel) with
-      // the multifilter snapshot's where, if both are present. The multifilter
-      // wins on key collisions so it can override the external filter.
-      const mfQuery = lastSnapshotRef.current?.query;
-      const merged =
-        externalFilter || mfQuery
-          ? {
-              ...mfQuery,
-              where: {
-                ...(externalFilter?.where ?? {}),
-                ...(mfQuery?.where ?? {}),
-              },
-            }
-          : undefined;
+      const merged = mergeFilters(externalFilter, lastSnapshotRef.current?.query);
       const result = await fetchData({
         page,
         itemsPerPage,
@@ -232,41 +220,24 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     const seq = ++eagerSeqRef.current;
     setIsResolvingEager(true);
     try {
-      const mfQuery = lastSnapshotRef.current?.query;
-      const merged =
-        externalFilter || mfQuery
-          ? {
-              ...mfQuery,
-              where: {
-                ...(externalFilter?.where ?? {}),
-                ...(mfQuery?.where ?? {}),
-              },
-            }
-          : undefined;
-      const PAGE_SIZE = 200;
+      const fetched = await fetchAllRows<T>({
+        fetchData,
+        filter: mergeFilters(externalFilter, lastSnapshotRef.current?.query),
+        sort,
+        idsOnly: !collectRows,
+        shouldContinue: () => seq === eagerSeqRef.current,
+      });
+      if (fetched === null || seq !== eagerSeqRef.current) return;
+
       const ids: string[] = [];
       const rowsAcc: T[] = [];
-      let knownTotal = Infinity;
-      for (let p = 1; ids.length < knownTotal; p++) {
-        const result = await fetchData({
-          page: p,
-          itemsPerPage: PAGE_SIZE,
-          sort,
-          filter: merged,
-          idsOnly: !collectRows,
-        });
-        if (seq !== eagerSeqRef.current) return;
-        knownTotal = result.totalCount;
-        for (const row of result.rows) {
-          const rid = getRowId(row);
-          if (rid) {
-            ids.push(rid);
-            if (collectRows) rowsAcc.push(row);
-          }
+      for (const row of fetched) {
+        const rid = getRowId(row);
+        if (rid) {
+          ids.push(rid);
+          if (collectRows) rowsAcc.push(row);
         }
-        if (result.rows.length < PAGE_SIZE) break;
       }
-      if (seq !== eagerSeqRef.current) return;
       setEagerAllIds(ids);
       if (collectRows) setEagerAllRows(rowsAcc);
     } finally {
