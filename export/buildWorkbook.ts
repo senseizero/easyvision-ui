@@ -34,8 +34,7 @@ const autoFitColumns = (worksheet: ExcelJS.Worksheet): void => {
         cell.value == null ? MIN_COLUMN_WIDTH : String(cell.value).length;
       if (length > longest) longest = length;
     });
-    column.width =
-      longest < MIN_COLUMN_WIDTH ? MIN_COLUMN_WIDTH : longest + COLUMN_WIDTH_PADDING;
+    column.width = Math.max(MIN_COLUMN_WIDTH, longest + COLUMN_WIDTH_PADDING);
   });
 };
 
