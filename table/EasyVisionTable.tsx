@@ -24,6 +24,7 @@ import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
 import { adaptColumns, shouldDisableSorting } from './ColumnDefAdapter';
 import { useTableData } from './useTableData';
+import { resolveColumnVisibility } from './columnVisibility';
 import { SelectAllControl } from './SelectAllControl';
 import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
@@ -350,22 +351,11 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
 
   // Column visibility / sizing both live in the table slice so they survive
   // unmount when `persist` is on (same lifetime as page / sort / selection).
-  //
-  // Visibility: defaults from `initiallyHidden` are *not* baked into the slice;
-  // they're merged in at read time below. That way a column added to `columns`
-  // after the slice was persisted still picks up its declared default — if we
-  // had seeded the slice with defaults, the missing key for the new column
-  // would silently render it visible.
-  const visibilityDefaults = useMemo<VisibilityState>(() => {
-    const v: VisibilityState = {};
-    for (const c of columns) {
-      if (c.initiallyHidden) v[c.field] = false;
-    }
-    return v;
-  }, [columns]);
+  // The defaults merge is shared with the export path via `columnVisibility.ts`
+  // so an export sees exactly the columns the table renders.
   const columnVisibility = useMemo<VisibilityState>(
-    () => ({ ...visibilityDefaults, ...slice.columnVisibility }),
-    [visibilityDefaults, slice.columnVisibility]
+    () => resolveColumnVisibility(columns, slice.columnVisibility),
+    [columns, slice.columnVisibility]
   );
 
   // Sizing: only persisted for columns currently marked `resizable: true`.
