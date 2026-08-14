@@ -6,6 +6,7 @@ import {
   EasyVisionSelector,
   EasyVisionMultifilter,
   EasyVisionTable,
+  EasyVisionExportButton,
   EasyVisionAccordion,
   easyVisionRegistry,
 } from '../index';
@@ -197,14 +198,33 @@ function MultifilterSection() {
   );
 }
 
+const LEVEL_LABELS: Record<DemoRow['level'], string> = {
+  CRITICAL: 'Crítico',
+  HIGH: 'Alto',
+  MEDIUM: 'Medio',
+  LOW: 'Bajo',
+};
+
 const TABLE_COLUMNS: EasyVisionColumn<DemoRow>[] = [
   { field: 'created', header: 'Fecha' },
   { field: 'client.name', header: 'Cliente' },
   { field: 'client.sector', header: 'Sector', sortable: true },
   { field: 'client.country', header: 'País' },
-  { field: 'level', header: 'Nivel' },
+  {
+    field: 'level',
+    header: 'Nivel',
+    // Exports the readable label instead of the raw enum.
+    exportValue: (row) => LEVEL_LABELS[row.level],
+  },
   { field: 'status', header: 'Estado' },
-  { field: 'score', header: 'Score' },
+  {
+    field: 'score',
+    header: 'Score',
+    exportStyle: (value) =>
+      typeof value === 'number' && value >= 3.5
+        ? { fill: 'FF991B1B', fontColor: 'FFFFFFFF', bold: true }
+        : undefined,
+  },
   { field: 'amount', header: 'Importe', initiallyHidden: true },
 ];
 
@@ -382,6 +402,20 @@ function TableSection() {
         <pre className="text-[10px] leading-tight max-h-32 overflow-auto rounded border bg-muted p-2">
           {selectionLog ? JSON.stringify(selectionLog, null, 2) : '(none)'}
         </pre>
+      </div>
+
+      <div className="mt-4">
+        <h3 className="text-sm font-medium mb-2">
+          One button, two sheets — hide a column via <code>Columnas</code> and it
+          leaves the sheet too
+        </h3>
+        <EasyVisionExportButton
+          tables={['localTable', 'apiTable']}
+          sheetNames={{ localTable: 'Local', apiTable: 'API' }}
+          filename="easyvision-demo"
+          onEmpty={() => window.alert('Nada que exportar')}
+          onError={(error) => window.alert(String(error))}
+        />
       </div>
     </EasyVisionCard>
   );

@@ -43,6 +43,9 @@ import {
   - [Binding a multifilter](#binding-a-multifilter)
   - [External filter and manual refetch](#external-filter-and-manual-refetch)
   - [Toolbar slots](#toolbar-slots)
+- [`EasyVisionExportButton`](#easyvisionexportbutton)
+  - [What gets exported](#what-gets-exported)
+  - [Resolving table ids](#resolving-table-ids)
 - [Migration cookbook](#migration-cookbook)
 - [Integration recipes](#integration-recipes)
   - [API adapters: LoopBack](#api-adapters-loopback)
@@ -796,6 +799,14 @@ type DataColumn<T> = {
   truncate?: boolean;
   /** Allow the user to drag the right edge of the header to resize this column. */
   resizable?: boolean;
+  /** Header text in an exported sheet. Defaults to `header` when it's a plain string, else `field`. */
+  exportHeader?: string;
+  /** Cell value in an exported sheet. Defaults to the value at `field` (arrays joined by ", "). */
+  exportValue?: (item: T) => ExportCellValue;
+  /** Per-cell styling in an exported sheet. Return `undefined` to leave a cell unstyled. */
+  exportStyle?: (value: ExportCellValue, item: T) => ExportCellStyle | undefined;
+  /** Include this column in exports. Default: `true` for `data` columns, `false` for `ui` columns. */
+  exportable?: boolean;
 };
 
 // UI column — no underlying value, never sortable.
@@ -809,9 +820,32 @@ type UiColumn<T> = {
   width?: number | string;
   truncate?: boolean;
   resizable?: boolean;
+  /** See data-column docs. */
+  exportHeader?: string;
+  /** See data-column docs. A `ui` column has no underlying value, so this is the only way to give it one. */
+  exportValue?: (item: T) => ExportCellValue;
+  /** See data-column docs. */
+  exportStyle?: (value: ExportCellValue, item: T) => ExportCellStyle | undefined;
+  /** `ui` columns default to `false` here — opt in alongside `exportValue` to export a computed column. */
+  exportable?: boolean;
 };
 
 export type EasyVisionColumn<T> = DataColumn<T> | UiColumn<T>;
+```
+
+`exportHeader` / `exportValue` / `exportStyle` / `exportable` only affect [`EasyVisionExportButton`](#easyvisionexportbutton) — they have no effect on what's rendered on screen. A worked `exportStyle` example, colouring a score cell by band:
+
+```ts
+{
+  field: 'score',
+  header: 'Score',
+  exportStyle: (value) =>
+    typeof value === 'number' && value >= 3.5
+      ? { fill: 'FF991B1B', fontColor: 'FFFFFFFF', bold: true }   // dark red, white bold text
+      : typeof value === 'number' && value >= 2
+        ? { fill: 'FFF59E0B', fontColor: 'FF1F2937' }             // amber
+        : undefined,                                              // leave low scores unstyled
+}
 ```
 
 **`field` does double duty on data columns:** it's both the column ID and the dot-path used to resolve the value. Internally the library generates an `accessorFn` that reads `row.client?.name` for `field: 'client.name'`. UI columns don't get an accessor — `field` there is just an ID.
@@ -1213,6 +1247,57 @@ interface TableLabels {
   clearSelection: string;                    // 'Limpiar selección'
 }
 ```
+
+---
+
+## `EasyVisionExportButton`
+
+Writes one or more registered tables into a single `.xlsx` file, one worksheet per table. It doesn't hold any data itself — every mounted `EasyVisionTable` registers an **export source** (a pair of resolvers: columns and rows) keyed by its `fullId`, and the button just looks those up by the ids you pass in `tables`.
+
+### Minimal usage
+
+```tsx
+<EasyVisionExportButton
+  tables={['localTable', 'apiTable']}
+  sheetNames={{ localTable: 'Local', apiTable: 'API' }}
+  filename="risk-evaluations"
+/>
+```
+
+Clicking it resolves `localTable` and `apiTable` against the tables mounted nearby, pulls each one's current rows and visible columns, and downloads `risk-evaluations_<ISO timestamp>.xlsx` with two sheets named `Local` and `API`. A table id with no `sheetNames` override falls back to the table's own `id` as the sheet name.
+
+### Props
+
+| prop | type | default | notes |
+|---|---|---|---|
+| `tables` | `string[]` | — required | Table ids, in sheet order. See [Resolving table ids](#resolving-table-ids) below. |
+| `filename` | `string` | — required | Base name. An ISO timestamp and `.xlsx` are appended. |
+| `sheetNames` | `Record<string, string>` | — | Per-table sheet-name override, keyed by the same id passed in `tables`. Sheet names are sanitized (invalid Excel characters replaced with `-`, truncated to 31 chars) and de-duplicated automatically. |
+| `labels` | `Partial<ExportLabels>` | Spanish defaults | `{ export, exporting }` — button text for idle and in-flight states. |
+| `onError` | `(error: unknown) => void` | — | A fetch or workbook-building failure aborts the whole export — no partial file is written. |
+| `onEmpty` | `() => void` | — | Fires when nothing was written: no id in `tables` resolved to a mounted table, or every sheet that did resolve had zero visible columns or zero matching rows. The button does **not** disable itself when a table id fails to resolve or a table has nothing to export — it always attempts the export and reports the outcome via `onEmpty` / `onError`, since a source can legitimately empty out between renders (a hidden column, a narrowed multifilter, an unmounted table). |
+| `disabled` | `boolean` | `false` | External disable, e.g. while a parent form is invalid. |
+| `className` | `string` | — | |
+| `icon` | `ReactNode` | a download icon | Replaces the default idle-state icon. The spinner shown while exporting is not overridable. |
+
+### What gets exported
+
+**Rows** are the ticked selection when there is one — page-scope ids, or an all-scope selection minus any `exceptIds` — and otherwise every row matching the table's current multifilter plus `externalFilter`. To assemble "every row" in API mode, the export first pages through `fetchData` under the hood to collect the complete matching set (the same helper `selectAllResolution="eager"` uses internally), then applies the selection filter to it — so an export is never limited to whatever page happens to be on screen, and behaves the same regardless of the table's `selectAllResolution` setting. Local mode already holds the filtered set in memory, so no extra fetching happens there.
+
+**Columns** are the table's currently visible, exportable columns, in declared order. Concretely:
+- A column must pass `isVisible` — the same visibility state `ColumnVisibilityMenu` (the **Columnas** button in the table toolbar) toggles. Hide a column there and it's gone from the sheet; show it and it reappears. This makes `ColumnVisibilityMenu` double as export column customization — there is no separate export-column picker.
+- A column must be exportable: `data` columns are exportable by default, `ui` columns are not (a `ui` column has no underlying value — opt it in with `exportable: true` plus an `exportValue` to export something computed).
+- **`largeScreensOnly` columns always export**, even when the viewport is too narrow to render them. `largeScreensOnly` is a CSS-only responsive hint — it never enters the visibility state — so if it affected the export, the same click would produce a different file on a phone than on a wide monitor. Hide a column from exports on purpose with `exportable: false` instead.
+
+Both resolvers run at export-click time, not at table-mount time, so a column toggle, a fresh multifilter query, or a changed selection made a second before clicking is always reflected — nothing needs to be re-registered.
+
+### Resolving table ids
+
+The button must render **inside the same namespace as the tables it names**. An id in `tables` is qualified through the surrounding namespace first, the same way a nested multifilter field is (see [The `id` rule](#the-id-rule)): `'localTable'` becomes `localTable-table` when the button sits at the top level (no enclosing namespace), or `parentId.localTable-table` when it's nested under something with `id="parentId"`.
+
+Rendering the button as a plain sibling of the tables — as in the demo — is the simple case: both the tables and the button see the same (usually empty) surrounding namespace, so local ids just work.
+
+Rendering it **inside a table's own `toolbarLeft` / `toolbarRight`** (a natural spot per [Toolbar slots](#toolbar-slots)) is different: that slot renders inside *that table's* namespace, so a local id would be qualified as `<hostTableId>-table.<name>-table` — which never matches, even for the table hosting the button itself. In that placement, pass the target table's **fully-qualified id** instead (its own `id` with `-table` appended, e.g. `'orders-table'`). An id already ending in `-table` is tried verbatim and matches directly, bypassing namespace resolution — this is the escape hatch for exporting a table the button can't reach by local-id lookup, including the table it's nested inside.
 
 ---
 
