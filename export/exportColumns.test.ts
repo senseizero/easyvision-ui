@@ -98,6 +98,15 @@ describe('toExportColumns', () => {
     expect(specs[0].getValue(ROW)).toBe(2);
   });
 
+  it('includes an opted-in ui column with no exportValue, yielding a null value', () => {
+    const columns: EasyVisionColumn<Row>[] = [
+      { type: 'ui', field: 'actions', header: 'Acciones', cell: () => null, exportable: true },
+    ];
+    const specs = toExportColumns(columns, ALL_VISIBLE);
+    expect(specs.map((c) => c.header)).toEqual(['Acciones']);
+    expect(specs[0].getValue(ROW)).toBeNull();
+  });
+
   it('excludes data columns marked exportable: false', () => {
     const columns: EasyVisionColumn<Row>[] = [
       { field: 'name', header: 'Nombre' },
