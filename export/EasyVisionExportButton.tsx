@@ -8,6 +8,7 @@ import { exportSheets } from './buildWorkbook';
 import type {
   EasyVisionExportButtonProps,
   ExportLabels,
+  ExportSource,
   SheetSpec,
 } from '../types/export.types';
 
@@ -34,11 +35,33 @@ export function EasyVisionExportButton({
   const handleClick = useCallback(async () => {
     setIsExporting(true);
     try {
+      // Resolve every id up front (synchronous) so a partial resolution
+      // failure can be reported before any row is fetched. When every id
+      // fails to resolve, this falls through to the existing empty-sheets
+      // path below (`onEmpty`) rather than erroring — the source registry
+      // is a plain, non-reactive `Map`, so a button rendering before its
+      // tables mount relies on that fallback rather than disabling itself.
+      const resolved: { tableId: string; source: ExportSource<unknown> | undefined }[] =
+        tables.map((tableId) => ({
+          tableId,
+          source: resolveExportSource(parentFullId, tableId),
+        }));
+      const unresolved = resolved
+        .filter((r) => !r.source)
+        .map((r) => r.tableId);
+      if (unresolved.length > 0 && unresolved.length < tables.length) {
+        onError?.(
+          new Error(
+            `EasyVisionExportButton: could not resolve table id(s): ${unresolved.join(', ')}`
+          )
+        );
+        return;
+      }
+
       const sheets: SheetSpec[] = [];
       // Sequential on purpose: each source may page through a large result
       // set, and running those loops concurrently invites rate-limiting.
-      for (const tableId of tables) {
-        const source = resolveExportSource(parentFullId, tableId);
+      for (const { tableId, source } of resolved) {
         if (!source) continue;
         sheets.push({
           name: sheetNames?.[tableId] ?? source.sheetName,
