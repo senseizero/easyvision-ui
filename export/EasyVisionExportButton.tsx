@@ -63,9 +63,14 @@ export function EasyVisionExportButton({
       // set, and running those loops concurrently invites rate-limiting.
       for (const { tableId, source } of resolved) {
         if (!source) continue;
+        const columns = source.getColumns();
+        // buildWorkbook discards any sheet with zero columns anyway — check
+        // here first so a table with no visible columns doesn't still pay
+        // for paginating through its entire (API-backed) result set.
+        if (columns.length === 0) continue;
         sheets.push({
           name: sheetNames?.[tableId] ?? source.sheetName,
-          columns: source.getColumns(),
+          columns,
           rows: await source.getRows(),
         });
       }
