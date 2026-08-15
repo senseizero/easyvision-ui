@@ -51,7 +51,11 @@ export const downloadBlob = (blob: Blob, filename: string): void => {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  // Revoking in the same tick as `click()` races the download start in some
+  // browsers (Safari has historically dropped downloads revoked this early;
+  // Chrome tolerates it because it starts the download during click
+  // dispatch). Defer to a later tick so the revoke can't outrun it.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
 const autoFitColumns = (worksheet: ExcelJS.Worksheet): void => {
