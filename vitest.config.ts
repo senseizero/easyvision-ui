@@ -6,6 +6,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['**/*.test.ts'],
-    exclude: ['node_modules/**', 'dist/**'],
+    // Globs must be `**/`-prefixed: setting `exclude` replaces vitest's
+    // defaults, and a root-anchored `node_modules/**` misses nested ones —
+    // a git worktree under `.worktrees/` or any package shipping its own
+    // `src/**/*.test.ts` would otherwise get collected and run.
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.worktrees/**'],
   },
 });
