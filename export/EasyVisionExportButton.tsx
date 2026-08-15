@@ -87,6 +87,7 @@ export function EasyVisionExportButton({
 
   return (
     <Button
+      type="button"
       variant="outline"
       size="sm"
       className={className}

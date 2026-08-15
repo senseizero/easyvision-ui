@@ -90,6 +90,6 @@ describe('fetchAllRows', () => {
     });
 
     expect(rows).toBeNull();
-    expect(calls.length).toBeLessThan(5);
+    expect(calls.length).toBe(3);
   });
 });

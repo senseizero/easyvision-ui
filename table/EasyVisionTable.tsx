@@ -347,7 +347,6 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     filteredData,
     isApi,
     getRowId,
-    sheetName: id,
   });
   exportStateRef.current = {
     columns,
@@ -359,7 +358,6 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     filteredData,
     isApi,
     getRowId,
-    sheetName: id,
   };
 
   useEffect(() => {
