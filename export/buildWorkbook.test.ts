@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { buildWorkbook, sanitizeSheetName } from './buildWorkbook';
+import { describe, expect, it, vi } from 'vitest';
+import { buildWorkbook, exportSheets, sanitizeSheetName } from './buildWorkbook';
 import type { SheetSpec } from '../types/export.types';
 
 interface Row {
@@ -189,5 +189,51 @@ describe('buildWorkbook multi-sheet', () => {
 
   it('returns null when every sheet is skipped', async () => {
     expect(await buildWorkbook([sheetOf('Vacia', [])])).toBeNull();
+  });
+});
+
+describe('exportSheets', () => {
+  it('returns true and calls the injected download exactly once on success', async () => {
+    const download = vi.fn();
+    const written = await exportSheets([sheetOf('Alertas')], {
+      filename: 'report',
+      download,
+    });
+
+    expect(written).toBe(true);
+    expect(download).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes a filename of <filename>_<ISO timestamp>.xlsx', async () => {
+    const download = vi.fn();
+    await exportSheets([sheetOf('Alertas')], { filename: 'report', download });
+
+    const [, filename] = download.mock.calls[0];
+    expect(filename).toMatch(
+      /^report_\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\.xlsx$/
+    );
+  });
+
+  it('passes a non-empty blob carrying the xlsx MIME type', async () => {
+    const download = vi.fn();
+    await exportSheets([sheetOf('Alertas')], { filename: 'report', download });
+
+    const [blob] = download.mock.calls[0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+    expect(blob.type).toBe(
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+  });
+
+  it('returns false and never calls download when every sheet is skipped', async () => {
+    const download = vi.fn();
+    const written = await exportSheets([sheetOf('Vacia', [])], {
+      filename: 'report',
+      download,
+    });
+
+    expect(written).toBe(false);
+    expect(download).not.toHaveBeenCalled();
   });
 });
