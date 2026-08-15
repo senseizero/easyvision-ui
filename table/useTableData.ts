@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { EasyVisionColumn, TableMode } from '../types/table.types';
-import { compareByPath } from '../lib/compareByPath';
+import { sortLocalRows } from './sortLocalRows';
 
 export interface UseTableDataParams<T> {
   data: T[] | undefined;
@@ -30,12 +30,7 @@ export function useTableData<T>({
     let rows: T[] = data ?? [];
 
     if (orderingMode === 'local' && sort) {
-      const col = columns.find((c) => c.field === sort.column);
-      if (col && col.type !== 'ui') {
-        const next = [...rows];
-        next.sort((a, b) => compareByPath(a, b, col.field, sort.descending));
-        rows = next;
-      }
+      rows = sortLocalRows(rows, columns, sort);
     }
 
     const totalCount = rows.length;

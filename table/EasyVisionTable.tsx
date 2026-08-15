@@ -27,6 +27,7 @@ import { useTableData } from './useTableData';
 import { applySelection } from './applySelection';
 import { resolveColumnVisibility, isColumnVisible } from './columnVisibility';
 import { fetchAllRows, mergeFilters } from './fetchAllRows';
+import { sortLocalRows } from './sortLocalRows';
 import { SelectAllControl } from './SelectAllControl';
 import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
@@ -384,8 +385,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
               sort: state.sort,
             })) ?? [];
         } else {
-          // Local mode already holds the filtered set in memory.
-          all = state.filteredData ?? [];
+          // Local mode already holds the filtered set in memory, but not
+          // sorted — sorting happens downstream in `useTableData` for the
+          // rendered table, so apply the same active sort here.
+          all = sortLocalRows(state.filteredData ?? [], state.columns, state.sort);
         }
         return applySelection(all, state.selection, state.getRowId);
       },
