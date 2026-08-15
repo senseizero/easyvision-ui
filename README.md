@@ -1297,7 +1297,11 @@ The button must render **inside the same namespace as the tables it names**. An 
 
 Rendering the button as a plain sibling of the tables — as in the demo — is the simple case: both the tables and the button see the same (usually empty) surrounding namespace, so local ids just work.
 
-Rendering it **inside a table's own `toolbarLeft` / `toolbarRight`** (a natural spot per [Toolbar slots](#toolbar-slots)) is different: that slot renders inside *that table's* namespace, so a local id would be qualified as `<hostTableId>-table.<name>-table` — which never matches, even for the table hosting the button itself. In that placement, pass the target table's **fully-qualified id** instead (its own `id` with `-table` appended, e.g. `'orders-table'`). An id already ending in `-table` is tried verbatim and matches directly, bypassing namespace resolution — this is the escape hatch for exporting a table the button can't reach by local-id lookup, including the table it's nested inside.
+Rendering it **inside a table's own `toolbarLeft` / `toolbarRight`** (a natural spot per [Toolbar slots](#toolbar-slots)) is different: that slot renders inside *that table's* namespace, so a local id would be qualified as `<hostTableId>-table.<name>-table` — which never matches, even for the table hosting the button itself. In that placement, pass the target table's **fully-qualified id** instead (its own `id` with `-table` appended, e.g. `'orders-table'`).
+
+Resolution is always **namespace-first**: the id is qualified through the surrounding namespace and looked up under that name first; only if that lookup misses is the raw id tried verbatim as a fallback. A fully-qualified id (one already ending in `-table`) doesn't *bypass* namespace resolution — the namespaced probe still runs first and would win if it happened to match — it just normally misses (a genuine local id doesn't already carry a `-table` suffix), so the fallback is what actually resolves it. This fallback is the escape hatch for exporting a table the button can't reach by local-id lookup, including the table it's nested inside.
+
+If the target table is itself nested under another namespaced component, its fully-qualified id is the **full chain**, not just its own `id` with `-table` appended: a table declared with `id="orders"` inside something with `id="page"` registers as `page-table.orders-table`, so that's the string to pass — `'orders-table'` alone won't match it.
 
 ---
 

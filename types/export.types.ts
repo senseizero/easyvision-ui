@@ -47,8 +47,10 @@ export interface ExportLabels {
 
 export interface EasyVisionExportButtonProps {
   /**
-   * Table ids, in sheet order. Local ids are resolved through the surrounding
-   * namespace; an id already ending in `-table` is used verbatim.
+   * Table ids, in sheet order. Each id is resolved namespace-first — qualified
+   * through the surrounding namespace, the same way a nested id is resolved
+   * elsewhere in this library — and only falls back to the raw id verbatim if
+   * that namespaced lookup misses.
    */
   tables: string[];
   /** Timestamp and `.xlsx` are appended. */
