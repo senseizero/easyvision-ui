@@ -652,7 +652,7 @@ interface MultifilterSnapshot {
 ```
 
 The default `query.where` builder uses these conventions per type:
-- `text` → `{ [field]: { $regex: `.*${value}.*`, $options: 'i' } }`
+- `text` → `{ [field]: { $regex: `.*${value}.*`, $options: 'i' } }` (regex metacharacters in `value` are escaped, so the text matches literally)
 - `selector` → `{ [field]: value }`
 - `multiselect` → `{ [field]: { $in: value } }`
 - `dateRange` → `{ [field]: { $gte, $lte } }` (ISO strings)
