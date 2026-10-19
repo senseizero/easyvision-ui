@@ -32,8 +32,7 @@ import type {
 } from '../types/multifilter.types';
 import type { MultifilterSliceData } from '../store/slice-types';
 import { MultifilterField } from './MultifilterField';
-import { useBuildQuery } from './hooks/useMultifilterQuery';
-import { escapeRegex } from '../lib/escapeRegex';
+import { textCondition, useBuildQuery } from './hooks/useMultifilterQuery';
 import { buildSnapshotKey, isDirty as computeIsDirty, isNonEmpty } from './hooks/useDirtyTracking';
 
 const DEFAULT_LABELS: MultifilterLabels = {
@@ -619,13 +618,12 @@ function buildChildQueryDirect(
     if (def.type === 'multifilter') continue;
     const v = values[def.id];
     if (v === undefined || v === null || v === '') continue;
+    if (def.type === 'text') {
+      Object.assign(where, textCondition(def, v));
+      continue;
+    }
     if (!def.field) continue;
     switch (def.type) {
-      case 'text': {
-        const str = String(v).trim();
-        if (str) where[def.field] = { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' };
-        break;
-      }
       case 'selector':
         where[def.field] = v;
         break;
@@ -658,9 +656,7 @@ function buildChildQueryDirect(
   }
   if (field.config.searchField) {
     const sv = values[field.config.searchField.id];
-    if (typeof sv === 'string' && sv.trim() && field.config.searchField.field) {
-      where[field.config.searchField.field] = { $regex: `.*${escapeRegex(sv.trim())}.*`, $options: 'i' };
-    }
+    if (typeof sv === 'string') Object.assign(where, textCondition(field.config.searchField, sv));
   }
   return Object.keys(where).length > 0 ? { where } : {};
 }

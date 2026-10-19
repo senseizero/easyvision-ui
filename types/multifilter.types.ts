@@ -68,6 +68,13 @@ export interface TextFieldDef extends MultifilterFieldBase {
    * Multiple prominent fields are supported and wrap onto extra rows as needed.
    */
   prominent?: boolean;
+  /**
+   * Search every one of these paths (a case-insensitive substring match on
+   * any of them, as one `$or`) instead of `field`. The text is escaped, so it
+   * matches literally. Use this instead of a hand-written `toCondition` for
+   * multi-path search bars, e.g. `fields: ['name', 'documentId']`.
+   */
+  fields?: string[];
 }
 
 export interface SelectorFieldDef<V extends string | number = string | number>
