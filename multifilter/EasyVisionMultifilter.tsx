@@ -359,17 +359,12 @@ export const EasyVisionMultifilter = forwardRef<
 
   // Bumped by `clearAll` to re-perform after the cleared state renders.
   const [clearTick, setClearTick] = useState(0);
+  // Defaults are the blank state of the filters, so clearing goes back to the
+  // initial fields and values, not to nothing.
   const clearAll = useCallback(() => {
-    const seed: Record<string, unknown> = {};
-    if (config.searchField?.defaultValue !== undefined) {
-      seed[config.searchField.id] = config.searchField.defaultValue;
-    }
     patch({
-      values: seed,
-      activeFields: initialActive.filter((id) => {
-        const def = config.fields.find((f) => f.id === id);
-        return def?.pinned;
-      }).concat(config.searchField ? [config.searchField.id] : []),
+      values: initialValues,
+      activeFields: initialActive,
       lastConfirmedSnapshotJSON: null,
     });
     // If a search was already confirmed, listeners (e.g. a bound table) are
@@ -378,7 +373,7 @@ export const EasyVisionMultifilter = forwardRef<
     if (lastConfirmedSnapshotJSON !== null && resolvedPerformMode !== 'live') {
       setClearTick((n) => n + 1);
     }
-  }, [config, patch, initialActive, lastConfirmedSnapshotJSON, resolvedPerformMode]);
+  }, [patch, initialValues, initialActive, lastConfirmedSnapshotJSON, resolvedPerformMode]);
 
   useEffect(() => {
     if (clearTick > 0) performAction();
