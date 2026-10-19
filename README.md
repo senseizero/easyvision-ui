@@ -658,7 +658,7 @@ The default `query.where` builder uses these conventions per type:
 - `dateRange` → `{ [field]: { $gte, $lte } }` (ISO strings)
 - `numberRange` → `{ [field]: { $gte, $lte } }`
 
-Override per field with `toCondition: (value) => unknown` (return either a primitive — wrapped in `{ [field]: ... }` — or a full clause containing `$or`/`$and`, which is merged at the top level of `where`). Useful for searching multiple paths with one input, or for translating UI values into a backend-specific shape.
+To search several paths with one input, give a `text` field `fields` instead of `field`. It builds one `$or` with the same escaped, case-insensitive match on each path:
 
 ```ts
 // Search bar that matches client.name OR title OR topics:
@@ -667,18 +667,11 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
   type: 'text',
   prominent: true,
   pinned: true,
-  toCondition: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return undefined;
-    const like = { $regex: `.*${s}.*`, $options: 'i' };
-    return { $or: [
-      { 'client.name': like },
-      { title: like },
-      { relatedTopicsText: like },
-    ]};
-  },
+  fields: ['client.name', 'title', 'relatedTopicsText'],
 }
 ```
+
+Override per field with `toCondition: (value) => unknown` (return either a primitive — wrapped in `{ [field]: ... }` — or a full clause containing `$or`/`$and`, which is merged at the top level of `where`). Useful for translating UI values into a backend-specific shape. A `toCondition` replaces the default builder entirely, so if it builds a `$regex` from user text it must escape that text itself.
 
 > `transform` is the deprecated old name for `toCondition` and is still accepted as an alias.
 
