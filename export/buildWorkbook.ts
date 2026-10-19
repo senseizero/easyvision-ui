@@ -1,4 +1,6 @@
-import ExcelJS from 'exceljs';
+// Type-only: the runtime is loaded on first export, so apps that never export
+// don't ship exceljs (~270 kB gzipped) in their main bundle.
+import type ExcelJS from 'exceljs';
 import type { SheetSpec } from '../types/export.types';
 
 const HEADER_FILL_ARGB = 'FFCCCCCC';
@@ -88,7 +90,8 @@ export async function buildWorkbook<T>(
   );
   if (usable.length === 0) return null;
 
-  const workbook = new ExcelJS.Workbook();
+  const { default: Excel } = await import('exceljs');
+  const workbook = new Excel.Workbook();
   const takenNames = new Set<string>();
 
   for (const sheet of usable) {
