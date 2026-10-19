@@ -80,3 +80,32 @@ describe('EasyVisionMultifilter "Limpiar"', () => {
     expect(onPerform).not.toHaveBeenCalled();
   });
 });
+
+describe('EasyVisionMultifilter "Limpiar" with default filters', () => {
+  // A default is the blank state of its field: "Limpiar" goes back to it.
+  const withDefault: MultifilterConfig = {
+    searchField: { id: 'q', type: 'text', label: 'Buscar', field: 'name' },
+    fields: [{ id: 'origin', type: 'text', label: 'Origen', field: 'origin', initiallyActive: true, defaultValue: 'FORUM' }],
+  };
+
+  it('restores the defaults and re-performs with them', async () => {
+    const onPerform = vi.fn();
+    act(() => {
+      root.render(createElement(EasyVisionMultifilter, { id: 'clear-defaults', config: withDefault, performButton: true, onPerform }));
+    });
+
+    typeInSearch('SUMOL');
+    clickButton('Buscar');
+    await flushMicrotasks();
+    expect(onPerform.mock.lastCall![0].query.where).toEqual({
+      name: { $regex: '.*SUMOL.*', $options: 'i' },
+      origin: { $regex: '.*FORUM.*', $options: 'i' },
+    });
+
+    clickButton('Limpiar');
+    await flushMicrotasks();
+    const cleared = onPerform.mock.lastCall![0];
+    expect(cleared.query.where).toEqual({ origin: { $regex: '.*FORUM.*', $options: 'i' } });
+    expect(cleared.activeFields).toContain('origin');
+  });
+});

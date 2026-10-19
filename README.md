@@ -693,7 +693,7 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
 | `onPerform` | `(snap) => void` | — | Fires when perform commits — from Buscar, `performOnMount`, the imperative `perform()` ref, or (live mode) any value/field change after the debounce. Dispatched on a microtask so calling `setState` inside is safe. |
 | `onChange` | `(snap) => void` | — | Every change (per keystroke / option toggle). |
 | `onStateChange` | `(snap) => void` | — | Same as `onChange`; provided for API symmetry. |
-| `showClearAll` | `boolean` | `editable` | Clears values & active fields. |
+| `showClearAll` | `boolean` | `editable` | Resets values & active fields to their initial state (`defaultValue`s and `pinned`/`initiallyActive` fields). |
 | `labels` | `Partial<MultifilterLabels>` | Spanish defaults | |
 | `className`, `persist`, `clearWhen` | as in Input/Selector | | |
 
