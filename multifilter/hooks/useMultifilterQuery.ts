@@ -5,8 +5,18 @@ import type {
   MultifilterQuery,
   DateRangeValue,
   NumberRangeValue,
+  TextFieldDef,
 } from '../../types/multifilter.types';
 import { escapeRegex } from '../../lib/escapeRegex';
+
+/** Literal, case-insensitive substring match on `def.fields` (as one `$or`) or `def.field`. */
+export function textCondition(def: TextFieldDef, value: unknown): Record<string, unknown> | undefined {
+  const str = String(value).trim();
+  if (!str) return undefined;
+  const like = { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' };
+  if (def.fields?.length) return { $or: def.fields.map((f) => ({ [f]: like })) };
+  return def.field ? { [def.field]: like } : undefined;
+}
 
 export function buildCondition(def: FieldDef, value: unknown): Record<string, unknown> | undefined {
   if (value === undefined || value === null || value === '') return undefined;
@@ -26,14 +36,10 @@ export function buildCondition(def: FieldDef, value: unknown): Record<string, un
     return undefined;
   }
 
+  if (def.type === 'text') return textCondition(def, value);
   if (!def.field) return undefined;
 
   switch (def.type) {
-    case 'text': {
-      const str = String(value).trim();
-      if (!str) return undefined;
-      return { [def.field]: { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' } };
-    }
     case 'selector': {
       return { [def.field]: value };
     }
