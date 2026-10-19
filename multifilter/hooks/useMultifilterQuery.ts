@@ -6,8 +6,9 @@ import type {
   DateRangeValue,
   NumberRangeValue,
 } from '../../types/multifilter.types';
+import { escapeRegex } from '../../lib/escapeRegex';
 
-function buildCondition(def: FieldDef, value: unknown): Record<string, unknown> | undefined {
+export function buildCondition(def: FieldDef, value: unknown): Record<string, unknown> | undefined {
   if (value === undefined || value === null || value === '') return undefined;
 
   const mapper = def.toCondition ?? def.transform;
@@ -31,7 +32,7 @@ function buildCondition(def: FieldDef, value: unknown): Record<string, unknown> 
     case 'text': {
       const str = String(value).trim();
       if (!str) return undefined;
-      return { [def.field]: { $regex: `.*${str}.*`, $options: 'i' } };
+      return { [def.field]: { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' } };
     }
     case 'selector': {
       return { [def.field]: value };

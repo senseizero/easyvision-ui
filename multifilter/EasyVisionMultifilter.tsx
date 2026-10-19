@@ -33,6 +33,7 @@ import type {
 import type { MultifilterSliceData } from '../store/slice-types';
 import { MultifilterField } from './MultifilterField';
 import { useBuildQuery } from './hooks/useMultifilterQuery';
+import { escapeRegex } from '../lib/escapeRegex';
 import { buildSnapshotKey, isDirty as computeIsDirty, isNonEmpty } from './hooks/useDirtyTracking';
 
 const DEFAULT_LABELS: MultifilterLabels = {
@@ -622,7 +623,7 @@ function buildChildQueryDirect(
     switch (def.type) {
       case 'text': {
         const str = String(v).trim();
-        if (str) where[def.field] = { $regex: `.*${str}.*`, $options: 'i' };
+        if (str) where[def.field] = { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' };
         break;
       }
       case 'selector':
@@ -658,7 +659,7 @@ function buildChildQueryDirect(
   if (field.config.searchField) {
     const sv = values[field.config.searchField.id];
     if (typeof sv === 'string' && sv.trim() && field.config.searchField.field) {
-      where[field.config.searchField.field] = { $regex: `.*${sv.trim()}.*`, $options: 'i' };
+      where[field.config.searchField.field] = { $regex: `.*${escapeRegex(sv.trim())}.*`, $options: 'i' };
     }
   }
   return Object.keys(where).length > 0 ? { where } : {};
