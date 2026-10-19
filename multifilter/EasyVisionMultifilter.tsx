@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react';
 import { Plus, Search, X } from 'lucide-react';
@@ -356,6 +357,8 @@ export const EasyVisionMultifilter = forwardRef<
     [activeFields, values, patch]
   );
 
+  // Bumped by `clearAll` to re-perform after the cleared state renders.
+  const [clearTick, setClearTick] = useState(0);
   const clearAll = useCallback(() => {
     const seed: Record<string, unknown> = {};
     if (config.searchField?.defaultValue !== undefined) {
@@ -369,7 +372,18 @@ export const EasyVisionMultifilter = forwardRef<
       }).concat(config.searchField ? [config.searchField.id] : []),
       lastConfirmedSnapshotJSON: null,
     });
-  }, [config, patch, initialActive]);
+    // If a search was already confirmed, listeners (e.g. a bound table) are
+    // still filtered by it. Re-perform once the cleared state has rendered so
+    // they reload. Live mode already re-performs on any snapshot change.
+    if (lastConfirmedSnapshotJSON !== null && resolvedPerformMode !== 'live') {
+      setClearTick((n) => n + 1);
+    }
+  }, [config, patch, initialActive, lastConfirmedSnapshotJSON, resolvedPerformMode]);
+
+  useEffect(() => {
+    if (clearTick > 0) performAction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearTick]);
 
   // Partition fields into pinned vs chip area, filtered by visibility.
   const visibleConfigFields = useMemo(
