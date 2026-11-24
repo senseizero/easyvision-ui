@@ -1,0 +1,50 @@
+# Publica en npm al empujar una etiqueta vX.Y.Z, con Trusted Publishing (OIDC):
+# no hay token guardado. npm solo acepta la publicación si viene de este
+# fichero, de este repo y del entorno `sensei` (configurado en npmjs.com).
+#
+# workflow_dispatch sirve para publicar una etiqueta que ya existe (p. ej. una
+# empujada antes de que este workflow existiera).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Etiqueta ya empujada que publicar (p. ej. v1.10.0)'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: sensei
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted Publishing necesita npm >= 11.5.1.
+      - run: npm install -g npm@latest
+
+      - name: La etiqueta coincide con package.json
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          version="v$(node -p 'require("./package.json").version')"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::La etiqueta $tag no coincide con package.json ($version)"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm test
+      - run: npm publish
