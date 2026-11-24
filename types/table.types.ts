@@ -6,6 +6,7 @@ import type {
   MultifilterQuery,
 } from './multifilter.types';
 import type { CreateLoopbackTableFetcherOptions, LoopbackFilter } from '../adapters/loopback';
+import type { CreateIngotTableFetcherOptions } from '../adapters/ingot';
 import type { ExportCellStyle, ExportCellValue } from './export.types';
 
 export type TableMode = 'local' | 'api';
@@ -212,6 +213,29 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
    *   />
    */
   loopback?: CreateLoopbackTableFetcherOptions<T>;
+
+  /**
+   * Same shortcut for ingot backends (NML v3). The multifilter's mongo-style
+   * `where` is translated to ingot operators (`$in`→`inq`, text search →
+   * `ilike`…), and the total comes from the page response itself, so
+   * `fetchPage` returns `{ rows, totalCount }` with `totalCount` read from
+   * the `X-Total-Count` header. Mutually exclusive with `loopback`.
+   *
+   * @example
+   *   <EasyVisionTable
+   *     id="documents"
+   *     ingot={{
+   *       fetchPage: async (filter) => {
+   *         const res = await api.get('/documents', { params: { filter: JSON.stringify(filter) } });
+   *         return { rows: res.data, totalCount: Number(res.headers['x-total-count']) };
+   *       },
+   *       include: [{ relation: 'subject' }],
+   *       defaultOrder: ['updatedAt DESC'],
+   *     }}
+   *     columns={columns}
+   *   />
+   */
+  ingot?: CreateIngotTableFetcherOptions<T>;
 
   /**
    * Fires after each successful API fetch with the freshly loaded rows and total count.

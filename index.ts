@@ -78,3 +78,6 @@ export type {
   LoopbackWhereValue,
   LoopbackCountResponse,
 } from './adapters/loopback';
+
+export { createIngotTableFetcher, toIngotWhere } from './adapters/ingot';
+export type { CreateIngotTableFetcherOptions, IngotFilter } from './adapters/ingot';

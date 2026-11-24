@@ -1449,7 +1449,7 @@ const filter: LoopbackFilter = {
 
 The library makes no assumptions about how the HTTP requests are issued — `fetchPage` and `fetchCount` are plain async functions. Bring your own auth, base URL, error handling, etc.
 
-For non-LoopBack backends, inline a custom `fetchData` — see [Adapting an arbitrary API response](#adapting-an-arbitrary-api-response) below — or contribute a sibling adapter (e.g. `adapters/westack.ts`) following the same pattern.
+For non-LoopBack backends, inline a custom `fetchData` — see [Adapting an arbitrary API response](#adapting-an-arbitrary-api-response) below — or contribute a sibling adapter following the same pattern (see `adapters/ingot.ts` below).
 
 #### Local mode filtering with the same DSL — `matchLoopbackWhere`
 
@@ -1528,6 +1528,38 @@ Behavior on edge cases:
 - `undefined` or empty `where` → matches everything (no filter active).
 - Unknown `$operator` → `false` (fail-closed; surfaces typos early).
 - Plain-object equality (`{ a: { b: 1 } }`) is not supported — use dotted paths (`'a.b'`) or `$and`.
+
+### API adapters: ingot (NML v3)
+
+ingot keeps LoopBack's `?filter=` shape (`where`, `include`, `order`, `fields`, `limit`, `skip`) but only accepts operator names without `$`. The `ingot` prop (or `createIngotTableFetcher`) takes the same mongo-style `where` the multifilter builds and translates it on the way out, so multifilters, local mode and `externalFilter` stay unchanged:
+
+| Multifilter emits | Sent to ingot |
+|---|---|
+| `$in` / `$nin` | `inq` / `nin` |
+| `$eq`, `$ne`/`$neq`, `$gt`, `$gte`, `$lt`, `$lte`, `$exists` | `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `exists` |
+| `$and` / `$or` | `and` / `or` |
+| text search (`$regex: '.*…*'`, `$options: 'i'`) | `ilike: '…'` (ingot's `like`/`ilike` are literal substring matches) |
+
+Anything ingot cannot express — `$not`, a real regex pattern (ingot disables `regexp`), an unknown `$` operator — throws instead of being dropped, so a filter never silently widens. Operators already in ingot form pass through.
+
+ingot returns the total in the `X-Total-Count` header of the page response, so there is no `fetchCount`: `fetchPage` returns `{ rows, totalCount }`.
+
+```tsx
+<EasyVisionTable
+  id="documents"
+  ingot={{
+    fetchPage: async (filter) => {
+      const res = await api.get('/documents', { params: { filter: JSON.stringify(filter) } });
+      return { rows: res.data, totalCount: Number(res.headers['x-total-count']) };
+    },
+    include: [{ relation: 'subject' }],
+    defaultOrder: ['updatedAt DESC'],
+  }}
+  columns={columns}
+/>
+```
+
+`toIngotWhere(where)` is exported for requests the table does not make (e.g. a `/count` or `/export` call with the same multifilter `where`).
 
 ### Adapting an arbitrary API response
 

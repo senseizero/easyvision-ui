@@ -33,6 +33,7 @@ import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
 import { EasyVisionMultifilter, type MultifilterHandle } from '../multifilter/EasyVisionMultifilter';
 import { createLoopbackTableFetcher, matchLoopbackWhere } from '../adapters/loopback';
+import { createIngotTableFetcher } from '../adapters/ingot';
 import { registerExportSource, unregisterExportSource } from '../export/sources';
 import { toExportColumns } from '../export/exportColumns';
 import type {
@@ -70,6 +71,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     data,
     fetchData: fetchDataProp,
     loopback,
+    ingot,
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -118,9 +120,20 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [lbFetchPage, lbFetchCount, lbIncludeKey, lbFieldsKey, lbOrderKey]
   );
-  const fetchData = fetchDataProp ?? loopbackFetcher;
-  const paginationMode: TableMode = loopback ? 'api' : paginationModeProp;
-  const orderingMode: TableMode = loopback ? 'api' : orderingModeProp;
+  // `ingot` is the same shortcut for NML v3 (ingot) backends; same memo rules.
+  const igFetchPage = ingot?.fetchPage;
+  const igIncludeKey = JSON.stringify(ingot?.include ?? null);
+  const igFieldsKey = JSON.stringify(ingot?.fields ?? null);
+  const igOrderKey = JSON.stringify(ingot?.defaultOrder ?? null);
+  const ingotFetcher = useMemo(
+    () => (ingot ? createIngotTableFetcher<T>(ingot) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [igFetchPage, igIncludeKey, igFieldsKey, igOrderKey]
+  );
+  const fetchData = fetchDataProp ?? loopbackFetcher ?? ingotFetcher;
+  const apiShortcut = Boolean(loopback || ingot);
+  const paginationMode: TableMode = apiShortcut ? 'api' : paginationModeProp;
+  const orderingMode: TableMode = apiShortcut ? 'api' : orderingModeProp;
 
   // Default `getRowId` to `row.id` (cast to string). Most rows in this app
   // expose a top-level `id`; callers with non-standard shapes can override.
