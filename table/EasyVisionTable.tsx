@@ -96,6 +96,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     reloadSignal,
     ariaLabel,
     getRowLabel,
+    renderDetail,
+    expandedIds,
+    getDetailId,
     columnFit = 'scroll',
     onDataLoaded,
     multifilter,
@@ -1111,6 +1114,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                     selection.scope === 'all' && !selection.exceptIds?.[rid];
                   const highlighted = isRowHighlighted?.(row.original) ?? false;
                   return (
+                    <React.Fragment key={row.id}>
                     <TableRow
                       key={row.id}
                       data-state={
@@ -1200,6 +1204,20 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                         );
                       })}
                     </TableRow>
+                    {renderDetail && expandedIds?.includes(rid) && (
+                      // What does not fit in a cell (a text to read) gets a row
+                      // of its own, full width, rendered only while open.
+                      <TableRow
+                        id={getDetailId ? getDetailId(rid) : `${rid}-detail`}
+                        data-detail
+                        className="ev-table-detail-row"
+                      >
+                        <TableCell colSpan={tableInstance.getVisibleLeafColumns().length}>
+                          {renderDetail(row.original)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                   );
                 })
               )}
@@ -1254,6 +1272,10 @@ function measureWidest(
   if (!table) return false;
   const stretched = table.style.width;
   table.style.width = 'max-content';
+  // An open row's detail spans every column: measured at max-content its text,
+  // on one line, would widen them all, and the cache only grows.
+  const details = [...table.querySelectorAll<HTMLElement>('tr[data-detail]')];
+  for (const row of details) row.style.display = 'none';
   let grew = false;
   for (const th of table.querySelectorAll<HTMLElement>('th[data-field]')) {
     const field = th.dataset.field;
@@ -1267,6 +1289,7 @@ function measureWidest(
       grew = true;
     }
   }
+  for (const row of details) row.style.display = '';
   table.style.width = stretched;
   return grew;
 }

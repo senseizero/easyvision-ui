@@ -307,6 +307,16 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
   ariaLabel?: string;
   /** What a row is called, for its checkbox's name ("Seleccionar Alerta 2"). */
   getRowLabel?: (row: T) => string;
+  /**
+   * A row that opens: what does not fit in a cell (a text to read) in a row of
+   * its own under it, full width, rendered only while its id is in
+   * `expandedIds`. The host owns which are open (toggle them in `onRowClick`
+   * or a cell's button).
+   */
+  renderDetail?: (row: T) => ReactNode;
+  expandedIds?: string[];
+  /** The detail row's DOM id, for a toggle's `aria-controls`. Default `<id>-detail`. */
+  getDetailId?: (rowId: string) => string;
   /** External `where` to merge into every fetch. Used when the page drives its own filter UI. */
   externalFilter?: { where?: Record<string, unknown> };
 

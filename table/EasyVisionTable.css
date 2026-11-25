@@ -421,3 +421,12 @@
   width: 0;
   min-width: 100%;
 }
+
+/* A row's detail (renderDetail): full width under its row, a soft background. */
+.ev-table-detail-row > td {
+  padding: 0;
+  background: color-mix(in srgb, var(--ev-muted, hsl(var(--muted, 210 40% 96%))) 30%, transparent);
+}
+.ev-table-fit .ev-table-detail-row > td {
+  white-space: normal;
+}

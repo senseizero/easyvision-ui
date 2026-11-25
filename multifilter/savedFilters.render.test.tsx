@@ -687,3 +687,36 @@ describe('export-only columns', () => {
     expect(text.replace(/^﻿/, '').split('\r\n')).toEqual(['Nombre,URL', 'Ana,https://x.org/a', '']);
   });
 });
+
+describe('rows that open (renderDetail)', () => {
+  it('draws the detail under its row, full width, only while open', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const rows = [{ id: 'r1', a: 'uno' }, { id: 'r2', a: 'dos' }];
+    const draw = (open: string[]) =>
+      act(() =>
+        root.render(
+          <EasyVisionTable
+            id="t"
+            data={rows}
+            columns={[
+              { field: 'a', header: 'A' },
+              { field: 'b', header: 'B' },
+            ]}
+            renderDetail={(row: { a: string }) => <p className="why">por qué {row.a}</p>}
+            expandedIds={open}
+            getDetailId={(id) => `detail-${id}`}
+          />
+        )
+      );
+    draw([]);
+    await flush();
+    expect(document.querySelector('.why')).toBeNull();
+    draw(['r2']);
+    await flush();
+    const detail = document.getElementById('detail-r2')!;
+    expect(detail.textContent).toBe('por qué dos');
+    expect(detail.querySelector('td')!.getAttribute('colspan')).toBe('2');
+    // Right under its own row.
+    expect(detail.previousElementSibling!.textContent).toContain('dos');
+  });
+});
