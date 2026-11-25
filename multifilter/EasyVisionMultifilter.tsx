@@ -304,8 +304,17 @@ export const EasyVisionMultifilter = forwardRef<
   // "Cannot update a component while rendering a different component" warning
   // when this is invoked from `useEffect` (e.g. `performOnMount`) or from the
   // live-mode auto-fire effect below.
+  const liveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const livePrevKeyRef = useRef<string | null>(null);
   const performAction = useCallback(() => {
     const key = buildSnapshotKey({ activeFields, values: composedValues });
+    // An explicit search covers a pending live one for the same values: live
+    // mode must not search them again when its debounce ends.
+    if (liveTimerRef.current !== null) {
+      clearTimeout(liveTimerRef.current);
+      liveTimerRef.current = null;
+    }
+    livePrevKeyRef.current = key;
     patch({ lastConfirmedSnapshotJSON: key });
     if (onPerform) {
       const emitted: MultifilterSnapshot = { ...snapshot, isDirty: false };
@@ -342,8 +351,6 @@ export const EasyVisionMultifilter = forwardRef<
   // composition changes. Debounced via `performDebounceMs` so rapid edits
   // (typing into a text field, toggling several chips quickly) collapse into a
   // single perform.
-  const liveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const livePrevKeyRef = useRef<string | null>(null);
   // The timer calls the latest performAction. It must not depend on it:
   // performAction is new on every render, and an effect that did would cancel
   // the pending timer on any re-render (data landing, a parent building its

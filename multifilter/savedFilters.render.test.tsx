@@ -720,3 +720,30 @@ describe('rows that open (renderDetail)', () => {
     expect(detail.previousElementSibling!.textContent).toContain('dos');
   });
 });
+
+describe('live mode and an explicit search', () => {
+  it('a perform() covers the pending live search: one search, not two', async () => {
+    const onPerform = vi.fn();
+    const handle: { current: { perform: () => void } | null } = { current: null };
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          ref={handle as never}
+          config={config}
+          performMode="live"
+          performDebounceMs={100}
+          onPerform={onPerform}
+        />
+      )
+    );
+    await flush();
+    act(() => easyVisionRegistry.getState().patch('mf-multifilter', { values: { status: ['DONE'] } } as never));
+    await flush();
+    act(() => handle.current!.perform());
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 250));
+    });
+    expect(onPerform).toHaveBeenCalledTimes(1);
+  });
+});
