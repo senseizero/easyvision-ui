@@ -17,7 +17,7 @@ export interface PaginationFooterProps {
   itemsPerPageOptions: number[];
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (n: number) => void;
-  labels: Pick<TableLabels, 'rowsPerPage' | 'results' | 'page' | 'of'>;
+  labels: Pick<TableLabels, 'rowsPerPage' | 'results' | 'page' | 'of' | 'previousPage' | 'nextPage'>;
   /**
    * Footer display mode. Mirrors `EasyVisionTableProps.paginationDisplay`.
    * `'fixedTotalItems'` is handled by the parent (footer not rendered) so
@@ -100,6 +100,7 @@ export function PaginationFooter({
               className="ev-table-footer-nav-btn"
               disabled={currentPage <= 1}
               onClick={() => onPageChange(currentPage - 1)}
+              aria-label={labels.previousPage}
             >
               <ChevronLeft className="ev-table-footer-nav-icon" />
             </Button>
@@ -109,6 +110,7 @@ export function PaginationFooter({
               className="ev-table-footer-nav-btn"
               disabled={currentPage >= totalPages}
               onClick={() => onPageChange(currentPage + 1)}
+              aria-label={labels.nextPage}
             >
               <ChevronRight className="ev-table-footer-nav-icon" />
             </Button>

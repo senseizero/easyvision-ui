@@ -177,6 +177,8 @@ export interface TableLabels {
   clearSelection: string;
   /** A row's checkbox: "Seleccionar" + the row's label (`getRowLabel`). */
   selectRow: string;
+  previousPage: string;
+  nextPage: string;
 }
 
 export interface EasyVisionTableProps<T> extends BaseStatefulProps {

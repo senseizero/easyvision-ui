@@ -489,6 +489,8 @@ describe('row click', () => {
     act(() => (document.querySelector('.plain') as HTMLElement).click());
     expect(onRowClick).toHaveBeenCalledTimes(1);
     expect(document.querySelector('[aria-label="Seleccionar Fila x"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Página siguiente"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Página anterior"]')).not.toBeNull();
     portal.remove();
   });
 });

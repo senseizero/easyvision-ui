@@ -60,6 +60,8 @@ const DEFAULT_LABELS: TableLabels = {
   selectedCountBanner: (n: number) => `${n} ${n === 1 ? 'registro seleccionado' : 'registros seleccionados'}`,
   clearSelection: 'Limpiar selección',
   selectRow: 'Seleccionar',
+  previousPage: 'Página anterior',
+  nextPage: 'Página siguiente',
 };
 
 /**
