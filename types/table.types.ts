@@ -175,6 +175,8 @@ export interface TableLabels {
   selectedAllBanner: (n: number) => string;
   selectedCountBanner: (n: number) => string;
   clearSelection: string;
+  /** A row's checkbox: "Seleccionar" + the row's label (`getRowLabel`). */
+  selectRow: string;
 }
 
 export interface EasyVisionTableProps<T> extends BaseStatefulProps {
@@ -268,6 +270,8 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
   reloadSignal?: unknown;
   /** The table's accessible name: what a screen reader says it is. */
   ariaLabel?: string;
+  /** What a row is called, for its checkbox's name ("Seleccionar Alerta 2"). */
+  getRowLabel?: (row: T) => string;
   /** External `where` to merge into every fetch. Used when the page drives its own filter UI. */
   externalFilter?: { where?: Record<string, unknown> };
 

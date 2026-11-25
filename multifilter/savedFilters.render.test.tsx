@@ -428,3 +428,48 @@ describe('icon buttons have names', () => {
     expect(names).toEqual(expect.arrayContaining(['Estado', 'Remove Completada', 'Remove filter: Estado']));
   });
 });
+
+describe('row click', () => {
+  it("opens the row from a plain cell, not from a cell's own link, button or a portal", async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const { createPortal } = await import('react-dom');
+    const onRowClick = vi.fn();
+    const portal = document.createElement('div');
+    document.body.appendChild(portal);
+    act(() =>
+      root.render(
+        <EasyVisionTable
+          id="t"
+          data={[{ id: '1', a: 'x' }]}
+          onRowClick={onRowClick}
+          enableRowSelection
+          getRowLabel={(row: { a: string }) => `Fila ${row.a}`}
+          columns={[
+            { field: 'a', header: 'A', cell: (row: { a: string }) => <span className="plain">{row.a}</span> },
+            {
+              type: 'ui',
+              field: 'actions',
+              header: '',
+              cell: () => (
+                <>
+                  <a href="#x" className="link">abrir</a>
+                  <button type="button" className="menu">⋯</button>
+                  {createPortal(<button type="button" className="item">Abrir</button>, portal)}
+                </>
+              ),
+            },
+          ]}
+        />
+      )
+    );
+    await flush();
+    for (const sel of ['.link', '.menu', '.item']) {
+      act(() => (document.querySelector(sel) as HTMLElement).click());
+    }
+    expect(onRowClick).not.toHaveBeenCalled();
+    act(() => (document.querySelector('.plain') as HTMLElement).click());
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('[aria-label="Seleccionar Fila x"]')).not.toBeNull();
+    portal.remove();
+  });
+});

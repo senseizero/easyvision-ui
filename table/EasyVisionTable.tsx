@@ -59,7 +59,23 @@ const DEFAULT_LABELS: TableLabels = {
   selectedAllBanner: (n: number) => `Todos los ${n} registros seleccionados`,
   selectedCountBanner: (n: number) => `${n} ${n === 1 ? 'registro seleccionado' : 'registros seleccionados'}`,
   clearSelection: 'Limpiar selección',
+  selectRow: 'Seleccionar',
 };
+
+/**
+ * A click the row must not take as "open the row": one on something of its
+ * own inside a cell (a link, a button, a menu, a checkbox), or one that only
+ * bubbled up through React from a portal (a menu's item) and never touched
+ * the row in the DOM.
+ */
+function isFromWithinControl(e: React.MouseEvent<HTMLElement>): boolean {
+  const target = e.target as Element | null;
+  if (!target || !e.currentTarget.contains(target)) return true;
+  const control = target.closest(
+    'a, button, input, select, textarea, label, [role="button"], [role="menuitem"], [role="checkbox"], [role="menu"]'
+  );
+  return !!control && e.currentTarget.contains(control) && control !== e.currentTarget;
+}
 
 export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T>) {
   const {
@@ -75,6 +91,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     defaultSort,
     reloadSignal,
     ariaLabel,
+    getRowLabel,
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -340,7 +357,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
           checked={row.getIsSelected()}
           onCheckedChange={(v) => row.toggleSelected(!!v)}
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          aria-label="Select row"
+          aria-label={
+            getRowLabel ? `${labels.selectRow} ${getRowLabel(row.original)}` : labels.selectRow
+          }
         />
       ),
       enableSorting: false,
@@ -984,7 +1003,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                       }
                       data-highlighted={highlighted ? 'true' : undefined}
                       className={onRowClick ? 'ev-table-row-clickable' : undefined}
-                      onClick={() => onRowClick?.(row.original)}
+                      onClick={(e) => {
+                        if (onRowClick && !isFromWithinControl(e)) onRowClick(row.original);
+                      }}
                     >
                       {row.getVisibleCells().map((cell) => {
                         if (cell.column.id === '_select' && selection.scope === 'all') {
