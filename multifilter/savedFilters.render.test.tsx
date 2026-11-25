@@ -388,3 +388,14 @@ describe('reloadSignal', () => {
     expect(fetchData.mock.calls[before][0].page).toBe(3);
   });
 });
+
+describe('ariaLabel', () => {
+  it('names the table for assistive tech', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    act(() =>
+      root.render(<EasyVisionTable id="t" ariaLabel="Tareas" data={[{ id: '1', a: 'x' }]} columns={[{ field: 'a', header: 'A' }]} />)
+    );
+    await flush();
+    expect(document.querySelector('table')!.getAttribute('aria-label')).toBe('Tareas');
+  });
+});

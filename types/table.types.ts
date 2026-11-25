@@ -266,6 +266,8 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
    * same query (an edit, a move), not for a new query.
    */
   reloadSignal?: unknown;
+  /** The table's accessible name: what a screen reader says it is. */
+  ariaLabel?: string;
   /** External `where` to merge into every fetch. Used when the page drives its own filter UI. */
   externalFilter?: { where?: Record<string, unknown> };
 

@@ -74,6 +74,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     ingot,
     defaultSort,
     reloadSignal,
+    ariaLabel,
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -848,7 +849,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                 : undefined
             }
           >
-            <table className="ev-table">
+            <table className="ev-table" aria-label={ariaLabel}>
             <TableHeader
               className={
                 maxBodyHeight !== undefined ? 'ev-table-thead-sticky' : undefined

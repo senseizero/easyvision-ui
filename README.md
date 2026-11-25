@@ -1233,6 +1233,7 @@ The toolbar row is hidden entirely when none of `toolbarLeft`, `toolbarRight`, o
 | `externalFilter` | `{ where?: Record<string, unknown> }` | — merged into every fetch |
 | `localMatch` | `(row, where) => boolean` | `matchLoopbackWhere` — local-mode predicate; override or compose to extend the DSL (see [Local mode filtering](#local-mode-filtering-with-the-same-dsl--matchloopbackwhere)) |
 | `refetchSignal` | `unknown` | — changing it refetches and resets `page` to 1 |
+| `ariaLabel` | `string` | — the table's accessible name (`aria-label` on `<table>`) |
 | `reloadSignal` | `unknown` | — changing it refetches and keeps the page: rows changed under the same query (an edit), not a new query |
 | `getRowId` | `(row) => string` | `(row) => String(row.id)` — override only for non-standard shapes |
 | `itemsPerPage` | `number` | `10` |
