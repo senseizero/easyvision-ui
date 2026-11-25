@@ -266,7 +266,7 @@ describe('searchFieldId', () => {
       )
     );
     await flush();
-    expect(onPerform.mock.calls[0][0].values).toMatchObject({ q: 'Art', status: ['DONE'] });
+    expect(onPerform.mock.calls[0][0].values).toMatchObject({ q: ['Art'], status: ['DONE'] });
 
     act(() => button('Guardados')!.click());
     await flush();
@@ -533,5 +533,80 @@ describe('export button, format csv', () => {
       reader.readAsText(files[0]);
     });
     expect(text.replace(/^\uFEFF/, '').split('\r\n')).toEqual(['Nombre;Score', 'Ana;0,5', '']);
+  });
+});
+
+describe('the search bar', () => {
+  const searchConfig: MultifilterConfig = {
+    fields: [{ id: 'q', type: 'text', label: 'Buscar', field: 'name', prominent: true, pinned: true }],
+  };
+
+  it('searches as typed, fixes a term with Enter, and takes terms off', async () => {
+    const changes: unknown[] = [];
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          config={searchConfig}
+          labels={{ removeValue: 'Quitar' }}
+          onChange={(snap) => changes.push(snap.values.q)}
+        />
+      )
+    );
+    await flush();
+    const input = () => document.querySelector('input[aria-label="Buscar"]') as HTMLInputElement;
+    const type = (text: string) =>
+      act(() => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input(), text);
+        input().dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    const key = (k: string) =>
+      act(() => {
+        input().dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+      });
+    const last = () => changes[changes.length - 1];
+    const chips = () => [...document.querySelectorAll('.ev-mf-search-term')].map((c) => c.textContent);
+
+    await type('acme');
+    expect(last()).toEqual(['acme']);
+    expect(chips()).toEqual([]);
+
+    key('Enter'); // the term is already searched: it becomes a chip
+    await flush();
+    expect(chips()).toEqual(['acme']);
+    expect(input().value).toBe('');
+    expect(last()).toEqual(['acme']);
+
+    await type('glo');
+    expect(last()).toEqual(['acme', 'glo']);
+    expect(chips()).toEqual(['acme']);
+
+    await type('');
+    key('Backspace'); // empty box: the last chip goes
+    await flush();
+    expect(last()).toEqual([]);
+
+    await type('a');
+    key('Enter');
+    await type('b');
+    key('Enter');
+    await flush();
+    act(() => (document.querySelector('[aria-label="Quitar a"]') as HTMLButtonElement).click());
+    await flush();
+    expect(last()).toEqual(['b']);
+    expect(chips()).toEqual(['b']);
+  });
+
+  it('reads a single string from older state as one term', async () => {
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          config={{ fields: [{ ...searchConfig.fields[0], defaultValue: 'acme' } as never] }}
+        />
+      )
+    );
+    await flush();
+    expect([...document.querySelectorAll('.ev-mf-search-term')].map((c) => c.textContent)).toEqual(['acme']);
   });
 });

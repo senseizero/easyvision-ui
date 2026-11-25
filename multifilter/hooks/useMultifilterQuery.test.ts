@@ -46,3 +46,35 @@ describe('buildCondition for text fields with several paths', () => {
     expect(buildCondition(multiField, '   ')).toBeUndefined();
   });
 });
+
+describe('the main search, several terms', () => {
+  const search: TextFieldDef = { id: 'q', type: 'text', label: 'Buscar', fields: ['name', 'documentId'] };
+  const single: TextFieldDef = { id: 'q', type: 'text', label: 'Buscar', field: 'name' };
+
+  it('matches any term on any path', () => {
+    expect(buildCondition(search, ['acme', 'b12'])).toEqual({
+      $or: [
+        { name: { $regex: '.*acme.*', $options: 'i' } },
+        { documentId: { $regex: '.*acme.*', $options: 'i' } },
+        { name: { $regex: '.*b12.*', $options: 'i' } },
+        { documentId: { $regex: '.*b12.*', $options: 'i' } },
+      ],
+    });
+    expect(buildCondition(single, ['acme', 'globex'])).toEqual({
+      $or: [{ name: { $regex: '.*acme.*', $options: 'i' } }, { name: { $regex: '.*globex.*', $options: 'i' } }],
+    });
+  });
+
+  it('one term, as a list or as a string, is the single search it always was', () => {
+    expect(buildCondition(single, ['acme'])).toEqual(buildCondition(single, 'acme'));
+    expect(buildCondition(single, [' acme ', 'acme', ''])).toEqual({ name: { $regex: '.*acme.*', $options: 'i' } });
+    expect(buildCondition(single, [])).toBeUndefined();
+  });
+
+  it('filters in memory with the same rule', () => {
+    const where = buildCondition(search, ['acme', 'b12']) as never;
+    expect(matchLoopbackWhere({ name: 'ACME SA', documentId: 'X' }, where)).toBe(true);
+    expect(matchLoopbackWhere({ name: 'Globex', documentId: 'B12345' }, where)).toBe(true);
+    expect(matchLoopbackWhere({ name: 'Globex', documentId: 'X' }, where)).toBe(false);
+  });
+});

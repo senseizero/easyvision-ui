@@ -9,13 +9,30 @@ import type {
 } from '../../types/multifilter.types';
 import { escapeRegex } from '../../lib/escapeRegex';
 
-/** Literal, case-insensitive substring match on `def.fields` (as one `$or`) or `def.field`. */
+/**
+ * The terms of a text value: a list (the main search) or a single string (a
+ * text filter, or older state). Trimmed, without blanks or repeats.
+ */
+export function toSearchTerms(value: unknown): string[] {
+  const raw = Array.isArray(value) ? value : value == null ? [] : [value];
+  return [...new Set(raw.map((term) => String(term).trim()).filter(Boolean))];
+}
+
+/**
+ * Literal, case-insensitive substring match of any term on any of
+ * `def.fields` (or `def.field`). One term on one path is a plain condition;
+ * anything more, one `$or` — exactly what a single term always built.
+ */
 export function textCondition(def: TextFieldDef, value: unknown): Record<string, unknown> | undefined {
-  const str = String(value).trim();
-  if (!str) return undefined;
-  const like = { $regex: `.*${escapeRegex(str)}.*`, $options: 'i' };
-  if (def.fields?.length) return { $or: def.fields.map((f) => ({ [f]: like })) };
-  return def.field ? { [def.field]: like } : undefined;
+  const terms = toSearchTerms(value);
+  const paths = def.fields?.length ? def.fields : def.field ? [def.field] : [];
+  if (terms.length === 0 || paths.length === 0) return undefined;
+  const clauses = terms.flatMap((term) =>
+    paths.map((path) => ({ [path]: { $regex: `.*${escapeRegex(term)}.*`, $options: 'i' } }))
+  );
+  // As a single term always was: `fields` an `$or`, one `field` a plain clause.
+  if (!def.fields?.length && clauses.length === 1) return clauses[0];
+  return { $or: clauses };
 }
 
 export function buildCondition(def: FieldDef, value: unknown): Record<string, unknown> | undefined {

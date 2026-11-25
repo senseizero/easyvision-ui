@@ -32,10 +32,11 @@ import type {
 } from '../types/multifilter.types';
 import type { MultifilterSliceData } from '../store/slice-types';
 import { MultifilterField } from './MultifilterField';
-import { textCondition, useBuildQuery } from './hooks/useMultifilterQuery';
+import { textCondition, toSearchTerms, useBuildQuery } from './hooks/useMultifilterQuery';
 import { buildSnapshotKey, isDirty as computeIsDirty, isNonEmpty } from './hooks/useDirtyTracking';
 import { fromStored, toStored, useSavedFilters, type SavedFilter } from './savedFilters';
 import { SavedFiltersMenu } from './SavedFiltersMenu';
+import { SearchBar } from './SearchBar';
 import { WidgetLabelsContext } from './labelsContext';
 
 const DEFAULT_LABELS: MultifilterLabels = {
@@ -136,7 +137,7 @@ export const EasyVisionMultifilter = forwardRef<
     (item: SavedFilter) => {
       const restored = fromStored(item.filters, config.fields);
       const searchId = savedFilters?.searchFieldId;
-      if (searchId && item.search.length) restored[searchId] = item.search.join(' ');
+      if (searchId && item.search.length) restored[searchId] = item.search;
       return {
         values: restored,
         activeFields: [...new Set([...initialActive, ...Object.keys(restored)])],
@@ -558,35 +559,18 @@ export const EasyVisionMultifilter = forwardRef<
           {/* Row 1: prominent search bars + add + perform + clear */}
           <div className="ev-mf-row">
             {prominentSlots.map(({ def, removable, isLegacySearchField }) => (
-              <div
+              <SearchBar
                 key={isLegacySearchField ? `__searchField__${def.id}` : def.id}
-                className="ev-mf-search-slot"
-              >
-                <Search className="ev-mf-search-icon" />
-                <input
-                  className={['ev-mf-search-input', removable ? 'has-clear' : 'no-clear']
-                    .filter(Boolean)
-                    .join(' ')}
-                  placeholder={def.placeholder ?? def.label ?? labels.searchPlaceholder}
-                  value={(values[def.id] as string | undefined) ?? ''}
-                  onChange={(e) => updateValue(def.id, e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && performButton && performEnabled) {
-                      performAction();
-                    }
-                  }}
-                />
-                {removable && (
-                  <button
-                    type="button"
-                    onClick={() => removeField(def.id)}
-                    aria-label={labels.clear}
-                    className="ev-mf-search-clear"
-                  >
-                    <X />
-                  </button>
-                )}
-              </div>
+                def={def}
+                value={values[def.id]}
+                onChange={(terms) => updateValue(def.id, terms)}
+                placeholder={def.placeholder ?? def.label ?? labels.searchPlaceholder}
+                onSubmit={() => {
+                  if (performButton && performEnabled) performAction();
+                }}
+                onRemoveField={removable ? () => removeField(def.id) : undefined}
+                labels={{ clear: labels.clear, removeValue: labels.removeValue }}
+              />
             ))}
 
             {editable && availableToAdd.length > 0 && (
@@ -641,9 +625,8 @@ export const EasyVisionMultifilter = forwardRef<
                 onSave={(name) => {
                   const searchId = savedFilters.searchFieldId;
                   if (!searchId) return saved.save(name, appliedToSave);
-                  const { [searchId]: text, ...rest } = appliedToSave;
-                  const terms = typeof text === 'string' && text.trim() ? [text.trim()] : [];
-                  saved.save(name, rest, terms);
+                  const { [searchId]: terms, ...rest } = appliedToSave;
+                  saved.save(name, rest, toSearchTerms(terms));
                 }}
                 onDelete={saved.remove}
                 onSetDefault={saved.setDefault}

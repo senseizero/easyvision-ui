@@ -397,6 +397,9 @@ A composable filter row: pinned (always-visible) area + dynamic chips area + opt
 
 ### Prominent fields (the top search bar)
 
+**Several terms.** The top search bar takes several terms, any of which matches (OR) on any of the field's paths. What is typed is searched as it is typed — it is the last term; **Enter** fixes it as a chip and frees the box for another; a chip's × or **Backspace** on an empty box takes one off. Its value is the list of terms (`string[]`); a single string (older persisted state, a `defaultValue`) reads as one term. **With one term the `where` is exactly the single search's**, so nothing changes for whoever searches one thing. Text filters that are not prominent stay single-valued.
+
+
 Any `type: 'text'` field with `prominent: true` renders **full-width at the top of the panel** with a magnifying-glass icon, instead of as an inline chip. Pressing **Enter** inside a prominent field triggers the Buscar action. The flag is orthogonal to `pinned`/`initiallyActive`, so any combination works:
 
 | `prominent` | `pinned` | `initiallyActive` | behaviour |
@@ -691,7 +694,7 @@ Storage is `localStorage[storageKey]`, so it is personal and per browser. Make t
   "defaultName": "Fallidas" }
 ```
 
-`savedFilters.searchFieldId` names the text field that holds the search terms: they are stored in `search` (as v3 does) instead of in `filters`, and read back into that field. `filters` is keyed by field id; dates are stored as local `YYYY-MM-DD` days and come back as `Date`s; a single string where a multiselect expects a list is read as a one-item list. Nested `multifilter` fields are not saved. Field ids the config no longer has are ignored.
+`savedFilters.searchFieldId` names the search field that holds the terms: they are stored as the `search` list (as v3 does) instead of in `filters`, and read back into that field. `filters` is keyed by field id; dates are stored as local `YYYY-MM-DD` days and come back as `Date`s; a single string where a multiselect expects a list is read as a one-item list. Nested `multifilter` fields are not saved. Field ids the config no longer has are ignored.
 
 ```tsx
 <EasyVisionTable
