@@ -261,6 +261,11 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
    * when the page drives its own filter UI separate from a bound multifilter.
    */
   refetchSignal?: unknown;
+  /**
+   * Like `refetchSignal`, but the page stays: for rows that changed under the
+   * same query (an edit, a move), not for a new query.
+   */
+  reloadSignal?: unknown;
   /** External `where` to merge into every fetch. Used when the page drives its own filter UI. */
   externalFilter?: { where?: Record<string, unknown> };
 

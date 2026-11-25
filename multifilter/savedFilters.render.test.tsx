@@ -357,3 +357,34 @@ describe('cells across renders', () => {
     expect(before?.isConnected).toBe(true);
   });
 });
+
+describe('reloadSignal', () => {
+  it('refetches on the same page, unlike refetchSignal', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const fetchData = vi.fn().mockResolvedValue({ rows: [{ id: '1', a: 'x' }], totalCount: 100 });
+    const draw = (reload: number) =>
+      act(() =>
+        root.render(
+          <EasyVisionTable
+            id="t"
+            paginationMode="api"
+            orderingMode="api"
+            fetchData={fetchData}
+            reloadSignal={reload}
+            columns={[{ field: 'a', header: 'A' }]}
+          />
+        )
+      );
+    draw(0);
+    await flush();
+    act(() => easyVisionRegistry.getState().patch('t-table', { page: 3 } as never));
+    await flush();
+    const before = fetchData.mock.calls.length;
+
+    draw(1);
+    await flush();
+
+    expect(fetchData.mock.calls.length).toBe(before + 1);
+    expect(fetchData.mock.calls[before][0].page).toBe(3);
+  });
+});

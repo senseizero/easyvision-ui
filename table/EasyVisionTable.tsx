@@ -73,6 +73,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     loopback,
     ingot,
     defaultSort,
+    reloadSignal,
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -235,7 +236,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
       if (fetchSeqRef.current === seq) void runFetch();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isApi, page, itemsPerPage, sort, refetchSignal]);
+  }, [isApi, page, itemsPerPage, sort, refetchSignal, reloadSignal]);
 
   // Eager wildcard resolution: paginate fetchData to capture every matching id.
   // Uses the same merged filter as `runFetch`; sort follows the table's current
