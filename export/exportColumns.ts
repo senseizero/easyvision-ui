@@ -31,7 +31,12 @@ export function toExportColumns<T>(
   isVisible: (field: string) => boolean
 ): ExportColumnSpec<T>[] {
   return columns
-    .filter((column) => isExportable(column) && isVisible(column.field))
+    // An export-only column is never on screen, so it has no visibility of
+    // its own: it is always written.
+    .filter(
+      (column) =>
+        isExportable(column) && (column.exportOnly || isVisible(column.field))
+    )
     .map((column) => {
       const exportValue = column.exportValue;
       const exportStyle = column.exportStyle;

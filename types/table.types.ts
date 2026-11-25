@@ -108,6 +108,12 @@ export type EasyVisionColumn<T> =
        * `exportValue` to export a computed column.
        */
       exportable?: boolean;
+      /**
+       * Written to exports, never drawn: not a table column, not in the column
+       * menu (e.g. a URL beside the title). Always exported, whatever the
+       * visibility.
+       */
+      exportOnly?: boolean;
     }
   | {
       type: 'ui';
@@ -150,6 +156,8 @@ export type EasyVisionColumn<T> =
        * `exportValue` to export a computed column.
        */
       exportable?: boolean;
+      /** See data-column docs. */
+      exportOnly?: boolean;
     };
 
 export interface ApiFetchParams {

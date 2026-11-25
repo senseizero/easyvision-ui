@@ -347,7 +347,14 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
   // Adapted TanStack columns.
   const cellCacheRef = useRef<CellCache>(new Map());
   const tanstackColumns = useMemo<ColumnDef<T>[]>(
-    () => adaptColumns(columns, orderingMode, defaultSorting, cellCacheRef.current),
+    () =>
+      adaptColumns(
+        // Export-only columns are written to files, never drawn.
+        columns.filter((c) => !c.exportOnly),
+        orderingMode,
+        defaultSorting,
+        cellCacheRef.current
+      ),
     [columns, orderingMode, defaultSorting]
   );
 
@@ -414,7 +421,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     if (measureWidest(container, declared, widthsRef.current)) {
       setPinned(Object.fromEntries(widthsRef.current));
     }
-    const chosen = columns.filter((c) => isColumnVisible(columnVisibility, c.field));
+    const chosen = columns.filter((c) => !c.exportOnly && isColumnVisible(columnVisibility, c.field));
     const fit = fitColumns(
       [
         ...(enableRowSelection

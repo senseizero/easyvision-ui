@@ -647,3 +647,43 @@ describe('live mode', () => {
     expect(onPerform.mock.calls[0][0].query.where).toEqual({ status: { $in: ['DONE'] } });
   });
 });
+
+describe('export-only columns', () => {
+  it('are written to the file, never drawn nor offered in the column menu', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const { EasyVisionExportButton } = await import('../export/EasyVisionExportButton');
+    const files: Blob[] = [];
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      files.push(blob);
+      return 'blob:x';
+    }) as never;
+    URL.revokeObjectURL = vi.fn() as never;
+    act(() =>
+      root.render(
+        <>
+          <EasyVisionTable
+            id="t"
+            data={[{ id: '1', name: 'Ana', url: 'https://x.org/a' }]}
+            columns={[
+              { field: 'name', header: 'Nombre' },
+              { field: 'url', header: 'URL', exportOnly: true },
+            ]}
+          />
+          <EasyVisionExportButton tables={['t']} filename="lista" format="csv" />
+        </>
+      )
+    );
+    await flush();
+    expect([...document.querySelectorAll('th')].map((th) => th.textContent)).toEqual(['Nombre']);
+    act(() => button('Exportar')!.click());
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsText(files[0]);
+    });
+    expect(text.replace(/^﻿/, '').split('\r\n')).toEqual(['Nombre,URL', 'Ana,https://x.org/a', '']);
+  });
+});
