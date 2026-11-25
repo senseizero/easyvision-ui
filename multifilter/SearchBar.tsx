@@ -63,7 +63,7 @@ export function SearchBar({
       <input
         className="ev-mf-search-input"
         aria-label={def.label}
-        placeholder={chips.length ? '' : placeholder}
+        placeholder={placeholder}
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
