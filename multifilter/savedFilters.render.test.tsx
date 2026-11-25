@@ -239,3 +239,93 @@ describe('a table whose multifilter opens with a saved default', () => {
     expect(fetchData.mock.calls[0][0].filter?.where ?? {}).toEqual({});
   });
 });
+
+describe('searchFieldId', () => {
+  const withSearch: MultifilterConfig = {
+    fields: [{ id: 'q', type: 'text', label: 'Buscar', field: 'name', prominent: true, pinned: true }, ...config.fields],
+  };
+
+  it("reads v3's search terms into the search field and writes them back there", async () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        items: [{ name: 'Arts', filters: { status: ['DONE'] }, search: ['Art'] }],
+        defaultName: 'Arts',
+      })
+    );
+    const onPerform = vi.fn();
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          config={withSearch}
+          performButton
+          onPerform={onPerform}
+          savedFilters={{ storageKey: KEY, searchFieldId: 'q' }}
+        />
+      )
+    );
+    await flush();
+    expect(onPerform.mock.calls[0][0].values).toMatchObject({ q: 'Art', status: ['DONE'] });
+
+    act(() => button('Guardados')!.click());
+    await flush();
+    const input = document.querySelector('.ev-mf-saved-form input') as HTMLInputElement;
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'Otra');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    act(() => button('Guardar')!.click());
+    expect(JSON.parse(localStorage.getItem(KEY)!).items[1]).toEqual({
+      name: 'Otra',
+      filters: { status: ['DONE'] },
+      search: ['Art'],
+    });
+  });
+});
+
+describe('defaultSort', () => {
+  async function mount() {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const fetchData = vi.fn().mockResolvedValue({ rows: [{ id: '1', a: 'x', b: 'y' }], totalCount: 1 });
+    act(() =>
+      root.render(
+        <EasyVisionTable
+          id="t"
+          paginationMode="api"
+          orderingMode="api"
+          fetchData={fetchData}
+          defaultSort={{ column: 'a', descending: true }}
+          columns={[
+            { field: 'a', header: 'A' },
+            { field: 'b', header: 'B' },
+          ]}
+        />
+      )
+    );
+    await flush();
+    const th = (name: string) =>
+      [...document.querySelectorAll('th')].find((h) => h.textContent?.startsWith(name))!;
+    return { fetchData, th };
+  }
+
+  it("marks the default order's column and asks nothing extra", async () => {
+    const { fetchData, th } = await mount();
+    expect(th('A').getAttribute('aria-sort')).toBe('descending');
+    expect(th('B').getAttribute('aria-sort')).toBeNull();
+    expect(fetchData.mock.calls[0][0].sort).toBeNull();
+  });
+
+  it('turns the default column around on click, and back to the default clears the sort', async () => {
+    const { fetchData, th } = await mount();
+    act(() => th('A').querySelector('button')!.click());
+    await flush();
+    expect(th('A').getAttribute('aria-sort')).toBe('ascending');
+    expect(fetchData.mock.calls[fetchData.mock.calls.length - 1][0].sort).toEqual({ column: 'a', descending: false });
+
+    act(() => th('A').querySelector('button')!.click());
+    await flush();
+    expect(th('A').getAttribute('aria-sort')).toBe('descending');
+    expect(fetchData.mock.calls[fetchData.mock.calls.length - 1][0].sort).toBeNull();
+  });
+});

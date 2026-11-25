@@ -72,6 +72,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     fetchData: fetchDataProp,
     loopback,
     ingot,
+    defaultSort,
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -435,9 +436,17 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     return r;
   }, [selection]);
 
-  const sortingState: SortingState = sort
-    ? [{ id: sort.column, desc: sort.descending }]
+  // With no sort chosen, the server's default order is the one shown: its
+  // column carries the arrow, as it is what the rows are sorted by.
+  const shownSort = sort ?? defaultSort ?? null;
+  const sortingState: SortingState = shownSort
+    ? [{ id: shownSort.column, desc: shownSort.descending }]
     : [];
+  const isDefaultSort = (s: { column: string; descending: boolean } | null) =>
+    !!s &&
+    !!defaultSort &&
+    s.column === defaultSort.column &&
+    s.descending === defaultSort.descending;
 
   const isEagerWildcard =
     (selectAllResolution === 'eager' || selectAllResolution === 'eager-ids') &&
@@ -491,7 +500,15 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
       const next =
         typeof updater === 'function' ? updater(sortingState) : updater;
       const first = next[0];
-      const newSort = first ? { column: first.id, descending: !!first.desc } : null;
+      let newSort = first ? { column: first.id, descending: !!first.desc } : null;
+      // Leaving the default column unsorted would show it sorted again, so a
+      // click on it turns it around instead; and landing on the default is
+      // the same as choosing nothing.
+      if (!newSort && sort === null && defaultSort) {
+        newSort = { column: defaultSort.column, descending: !defaultSort.descending };
+      } else if (isDefaultSort(newSort)) {
+        newSort = null;
+      }
       patch({ sort: newSort } as Partial<TableSliceData>);
     },
     getCoreRowModel: getCoreRowModel(),
@@ -877,6 +894,13 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                       <TableHead
                         key={header.id}
                         style={headerWidthStyle}
+                        aria-sort={
+                          header.column.getIsSorted() === 'asc'
+                            ? 'ascending'
+                            : header.column.getIsSorted() === 'desc'
+                            ? 'descending'
+                            : undefined
+                        }
                         className={
                           colMeta.largeScreensOnly ? 'ev-table-large-only' : undefined
                         }

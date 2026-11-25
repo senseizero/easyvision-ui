@@ -8,8 +8,9 @@
  * nml-vision v3's data-table writes, `{ items: [{ name, filters, search }],
  * defaultName }`, with filters keyed by field id: a host that keeps v3's key
  * and field ids reads what people already saved there. Dates are stored as
- * local `YYYY-MM-DD` days, like v3; `search` is kept for that format and
- * always written empty (the text fields travel in `filters`).
+ * local `YYYY-MM-DD` days, like v3. `search` holds the search terms when the
+ * host names the text field they belong to (`searchFieldId`); otherwise every
+ * text field travels in `filters` and `search` is written empty.
  */
 import { useCallback, useState } from 'react';
 import type { DateRangeValue, FieldDef } from '../types/multifilter.types';
@@ -35,6 +36,11 @@ export interface SavedFiltersOptions {
    * link) says `false`: what the link asks for wins.
    */
   openWithDefault?: boolean;
+  /**
+   * The text field that holds the search terms. v3 keeps them apart, in
+   * `search`; naming the field writes it there and reads it back.
+   */
+  searchFieldId?: string;
 }
 
 type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>;
@@ -169,8 +175,8 @@ export function useSavedFilters(storageKey: string | undefined) {
   );
 
   const save = useCallback(
-    (name: string, filters: Record<string, unknown>) => {
-      const saved: SavedFilter = { name, filters, search: [] };
+    (name: string, filters: Record<string, unknown>, search: string[] = []) => {
+      const saved: SavedFilter = { name, filters, search };
       // A repeated name replaces in place: the list keeps its order.
       const known = store.items.some((i) => i.name === name);
       const items = known

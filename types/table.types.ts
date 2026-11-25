@@ -238,6 +238,13 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
   ingot?: CreateIngotTableFetcherOptions<T>;
 
   /**
+   * The order the server applies when no sort is chosen (api mode). Its
+   * column shows the arrow and `aria-sort` meanwhile; a click on it turns it
+   * around, and coming back to it clears the chosen sort.
+   */
+  defaultSort?: { column: string; descending: boolean };
+
+  /**
    * Fires after each successful API fetch with the freshly loaded rows and total count.
    * Useful when the page needs to mirror the loaded slice into another store
    * (e.g. a global context for export/selection) without wrapping `fetchData`.

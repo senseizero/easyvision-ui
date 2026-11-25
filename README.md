@@ -691,7 +691,7 @@ Storage is `localStorage[storageKey]`, so it is personal and per browser. Make t
   "defaultName": "Fallidas" }
 ```
 
-`filters` is keyed by field id; dates are stored as local `YYYY-MM-DD` days and come back as `Date`s; a single string where a multiselect expects a list is read as a one-item list. Nested `multifilter` fields are not saved. Field ids the config no longer has are ignored.
+`savedFilters.searchFieldId` names the text field that holds the search terms: they are stored in `search` (as v3 does) instead of in `filters`, and read back into that field. `filters` is keyed by field id; dates are stored as local `YYYY-MM-DD` days and come back as `Date`s; a single string where a multiselect expects a list is read as a one-item list. Nested `multifilter` fields are not saved. Field ids the config no longer has are ignored.
 
 ```tsx
 <EasyVisionTable
@@ -1227,6 +1227,7 @@ The toolbar row is hidden entirely when none of `toolbarLeft`, `toolbarRight`, o
 | `data` | `T[]` | — for local mode |
 | `fetchData` | `(params) => Promise<{rows, totalCount}>` | — for api mode |
 | `loopback` | `CreateLoopbackTableFetcherOptions<T>` | — declarative LoopBack shortcut; auto-builds `fetchData` and forces `paginationMode`/`orderingMode` to `'api'` (see [API adapters: LoopBack](#api-adapters-loopback)) |
+| `defaultSort` | `{ column, descending }` | — api mode: the order the server applies when no sort is chosen. Its column shows the arrow and `aria-sort`; a click turns it around, and coming back to it clears the sort (so `fetchData` gets `sort: null` again) |
 | `onDataLoaded` | `(rows, totalCount) => void` | — fires after every successful API fetch; mirror the loaded slice into another store without wrapping `fetchData` |
 | `multifilter` | `EasyVisionMultifilterProps` | — |
 | `externalFilter` | `{ where?: Record<string, unknown> }` | — merged into every fetch |

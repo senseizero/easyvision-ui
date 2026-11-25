@@ -132,12 +132,14 @@ export const EasyVisionMultifilter = forwardRef<
   const savedState = useCallback(
     (item: SavedFilter) => {
       const restored = fromStored(item.filters, config.fields);
+      const searchId = savedFilters?.searchFieldId;
+      if (searchId && item.search.length) restored[searchId] = item.search.join(' ');
       return {
         values: restored,
         activeFields: [...new Set([...initialActive, ...Object.keys(restored)])],
       };
     },
-    [config.fields, initialActive]
+    [config.fields, initialActive, savedFilters?.searchFieldId]
   );
   // Set when the slice is born from the default saved query, which must then
   // be performed on mount like any seeded value.
@@ -630,7 +632,13 @@ export const EasyVisionMultifilter = forwardRef<
                 canSave={Object.keys(appliedToSave).length > 0}
                 labels={labels}
                 onApply={applySaved}
-                onSave={(name) => saved.save(name, appliedToSave)}
+                onSave={(name) => {
+                  const searchId = savedFilters.searchFieldId;
+                  if (!searchId) return saved.save(name, appliedToSave);
+                  const { [searchId]: text, ...rest } = appliedToSave;
+                  const terms = typeof text === 'string' && text.trim() ? [text.trim()] : [];
+                  saved.save(name, rest, terms);
+                }}
                 onDelete={saved.remove}
                 onSetDefault={saved.setDefault}
               />
