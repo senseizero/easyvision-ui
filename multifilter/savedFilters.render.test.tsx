@@ -153,6 +153,40 @@ describe('saved filters in the multifilter', () => {
   });
 });
 
+describe('openWithDefault: false', () => {
+  it('starts from the defaults the host gives (a shared link), not the saved default', async () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        items: [{ name: 'Fallidas', filters: { status: ['FAILED'] }, search: [] }],
+        defaultName: 'Fallidas',
+      })
+    );
+    const onPerform = vi.fn();
+    const linked: MultifilterConfig = {
+      fields: config.fields.map((f) => (f.id === 'status' ? { ...f, defaultValue: ['DONE'] } : f)),
+    };
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          config={linked}
+          performButton
+          performOnMount
+          onPerform={onPerform}
+          savedFilters={{ storageKey: KEY, openWithDefault: false }}
+        />
+      )
+    );
+    await flush();
+    expect(onPerform.mock.calls[0][0].query.where).toEqual({ status: { $in: ['DONE'] } });
+    // The menu is still there, default marked.
+    act(() => button('Guardados')!.click());
+    await flush();
+    expect(button('Fallidas')).toBeTruthy();
+  });
+});
+
 describe('a table whose multifilter opens with a saved default', () => {
   it('loads once, already filtered (no unfiltered flash)', async () => {
     const { EasyVisionTable } = await import('../table/EasyVisionTable');

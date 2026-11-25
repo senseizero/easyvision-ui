@@ -146,7 +146,7 @@ export const EasyVisionMultifilter = forwardRef<
   const { slice, fullId, patch } = useEasyVisionSlice<'multifilter'>('multifilter', id, {
     init: () => {
       // A fresh slice (nothing persisted) opens with the default saved query.
-      if (saved.defaultFilter) {
+      if (saved.defaultFilter && savedFilters?.openWithDefault !== false) {
         openedWithDefaultRef.current = true;
         return { kind: 'multifilter', ...savedState(saved.defaultFilter), lastConfirmedSnapshotJSON: null };
       }

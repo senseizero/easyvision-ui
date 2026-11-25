@@ -29,6 +29,12 @@ export interface SavedFiltersStore {
 export interface SavedFiltersOptions {
   /** localStorage key. Make it unique per table and per account. */
   storageKey: string;
+  /**
+   * Open with the default saved query when the multifilter starts clean.
+   * Default `true`. A host whose page arrived with its own filters (a shared
+   * link) says `false`: what the link asks for wins.
+   */
+  openWithDefault?: boolean;
 }
 
 type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>;

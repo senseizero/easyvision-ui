@@ -681,7 +681,7 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
 
 - **Guardar** names what is *applied* (the last Buscar), not what is staged; with nothing applied the form is disabled. A repeated name replaces the old one in place.
 - **Click a name** to replace the filters with it and search at once.
-- **★** makes it the default: a multifilter that opens clean (nothing persisted) opens with it and performs it, so a bound table loads already filtered. One default at most; ★ again removes it.
+- **★** makes it the default: a multifilter that opens clean (nothing persisted) opens with it and performs it, so a bound table loads already filtered. One default at most; ★ again removes it. `openWithDefault: false` turns that off for one mount, for a page that arrived with its own filters (a shared link): the host seeds them as `defaultValue`s and sets `performOnMount`.
 - **🗑** deletes it (and the default, if it was).
 
 Storage is `localStorage[storageKey]`, so it is personal and per browser. Make the key unique per table **and** per account if people may share a browser. The shape is the one nml-vision v3's data-table writes, so a host that keeps v3's key (`nml.table.view:<viewKey>.saved.<userId>`) and field ids reads what people already saved there:
