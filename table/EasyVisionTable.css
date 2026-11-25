@@ -414,3 +414,10 @@
 .ev-table-fit td.ev-table-wrap {
   white-space: normal;
 }
+
+/* A minWidth column's content: width 0 that fills the cell, so the content
+   never widens the column and wraps to whatever width the column gets. */
+.ev-table-wrap-fill {
+  width: 0;
+  min-width: 100%;
+}

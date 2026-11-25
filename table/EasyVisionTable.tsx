@@ -1182,6 +1182,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                               >
                                 {rendered}
                               </div>
+                            ) : cellMeta.minWidth ? (
+                              // Width 0 that fills the cell: what is inside no
+                              // longer widens the column; it wraps instead.
+                              <div className="ev-table-wrap-fill">{rendered}</div>
                             ) : (
                               rendered
                             )}
