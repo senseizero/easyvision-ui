@@ -399,3 +399,32 @@ describe('ariaLabel', () => {
     expect(document.querySelector('table')!.getAttribute('aria-label')).toBe('Tareas');
   });
 });
+
+describe('icon buttons have names', () => {
+  it('names the chip buttons by filter and value, with the labels given', async () => {
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          labels={{ removeFilter: 'Remove filter', removeValue: 'Remove' }}
+          config={{
+            fields: [
+              {
+                id: 'status',
+                type: 'multiselect',
+                label: 'Estado',
+                field: 'status',
+                initiallyActive: true,
+                defaultValue: ['DONE'],
+                options: [{ value: 'DONE', label: 'Completada' }],
+              },
+            ],
+          }}
+        />
+      )
+    );
+    await flush();
+    const names = [...document.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'));
+    expect(names).toEqual(expect.arrayContaining(['Estado', 'Remove Completada', 'Remove filter: Estado']));
+  });
+});

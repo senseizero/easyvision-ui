@@ -36,6 +36,7 @@ import { textCondition, useBuildQuery } from './hooks/useMultifilterQuery';
 import { buildSnapshotKey, isDirty as computeIsDirty, isNonEmpty } from './hooks/useDirtyTracking';
 import { fromStored, toStored, useSavedFilters, type SavedFilter } from './savedFilters';
 import { SavedFiltersMenu } from './SavedFiltersMenu';
+import { WidgetLabelsContext } from './labelsContext';
 
 const DEFAULT_LABELS: MultifilterLabels = {
   search: 'Buscar',
@@ -52,6 +53,8 @@ const DEFAULT_LABELS: MultifilterLabels = {
   setDefault: 'Abrir siempre con este',
   unsetDefault: 'Dejar de abrir con este',
   deleteSaved: 'Borrar',
+  removeFilter: 'Quitar filtro',
+  removeValue: 'Quitar',
 };
 
 export type { MultifilterHandle } from '../types/multifilter.types';
@@ -547,6 +550,9 @@ export const EasyVisionMultifilter = forwardRef<
 
   return (
     <NamespaceProvider fullId={fullId}>
+      <WidgetLabelsContext.Provider
+        value={{ removeFilter: labels.removeFilter, removeValue: labels.removeValue }}
+      >
       <div className={className}>
         <div className="ev-mf-panel">
           {/* Row 1: prominent search bars + add + perform + clear */}
@@ -682,6 +688,7 @@ export const EasyVisionMultifilter = forwardRef<
           )}
         </div>
       </div>
+      </WidgetLabelsContext.Provider>
     </NamespaceProvider>
   );
 });

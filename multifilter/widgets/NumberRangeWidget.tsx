@@ -1,3 +1,4 @@
+import { useWidgetLabels } from '../labelsContext';
 import * as React from 'react';
 import { Input } from '../../ui/input';
 import { X } from 'lucide-react';
@@ -19,6 +20,7 @@ export function NumberRangeWidget({
   onChange,
   onRemove,
 }: NumberRangeWidgetProps) {
+  const widgetLabels = useWidgetLabels();
   const range = value ?? {};
   return (
     <div className="ev-mf-chip">
@@ -49,6 +51,7 @@ export function NumberRangeWidget({
         <button
           type="button"
           onClick={onRemove}
+          aria-label={`${widgetLabels.removeFilter}: ${definition.label}`}
           className="ev-mf-chip-remove"
         >
           <X />

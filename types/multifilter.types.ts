@@ -164,6 +164,9 @@ export interface MultifilterLabels {
   setDefault: string;
   unsetDefault: string;
   deleteSaved: string;
+  /** Icon buttons: "Quitar filtro: Estado", "Quitar Completada". */
+  removeFilter: string;
+  removeValue: string;
 }
 
 export interface MultifilterQuery {

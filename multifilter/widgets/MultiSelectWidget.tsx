@@ -1,3 +1,4 @@
+import { useWidgetLabels } from '../labelsContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Popover,
@@ -23,6 +24,7 @@ export function MultiSelectWidget({
   onChange,
   onRemove,
 }: MultiSelectWidgetProps) {
+  const widgetLabels = useWidgetLabels();
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const searchFn = definition.searchOptions;
@@ -120,6 +122,7 @@ export function MultiSelectWidget({
           <button
             type="button"
             onClick={() => removeOne(v)}
+            aria-label={`${widgetLabels.removeValue} ${labelOf(v)}`}
             className="ev-mf-chip-badge-x"
           >
             <X />
@@ -128,7 +131,7 @@ export function MultiSelectWidget({
       ))}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button type="button" className="ev-mf-chip-caret">
+          <button type="button" className="ev-mf-chip-caret" aria-label={definition.label}>
             <ChevronDown />
           </button>
         </PopoverTrigger>
@@ -160,7 +163,8 @@ export function MultiSelectWidget({
         </PopoverContent>
       </Popover>
       {onRemove && (
-        <button type="button" onClick={onRemove} className="ev-mf-chip-remove">
+        <button type="button" onClick={onRemove}
+          aria-label={`${widgetLabels.removeFilter}: ${definition.label}`} className="ev-mf-chip-remove">
           <X />
         </button>
       )}

@@ -1,3 +1,4 @@
+import { useWidgetLabels } from '../labelsContext';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import {
@@ -21,6 +22,7 @@ export interface SelectorWidgetProps {
 }
 
 export function SelectorWidget({ definition, value, onChange, onRemove }: SelectorWidgetProps) {
+  const widgetLabels = useWidgetLabels();
   const [open, setOpen] = useState(false);
   const [resolved, setResolved] = useState<SelectorOption[] | null>(
     Array.isArray(definition.options) ? (definition.options as SelectorOption[]) : null
@@ -76,6 +78,7 @@ export function SelectorWidget({ definition, value, onChange, onRemove }: Select
         <button
           type="button"
           onClick={onRemove}
+          aria-label={`${widgetLabels.removeFilter}: ${definition.label}`}
           className="ev-mf-chip-remove"
         >
           <X />

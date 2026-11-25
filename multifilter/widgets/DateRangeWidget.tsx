@@ -1,3 +1,4 @@
+import { useWidgetLabels } from '../labelsContext';
 import * as React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -26,6 +27,7 @@ export function DateRangeWidget({
   onChange,
   onRemove,
 }: DateRangeWidgetProps) {
+  const widgetLabels = useWidgetLabels();
   const range = value ?? {};
 
   const label = (() => {
@@ -64,6 +66,7 @@ export function DateRangeWidget({
         <button
           type="button"
           onClick={onRemove}
+          aria-label={`${widgetLabels.removeFilter}: ${definition.label}`}
           className="ev-mf-chip-remove"
         >
           <X />

@@ -1,3 +1,4 @@
+import { useWidgetLabels } from '../labelsContext';
 import * as React from 'react';
 import { Input } from '../../ui/input';
 import { X } from 'lucide-react';
@@ -11,6 +12,7 @@ export interface TextWidgetProps {
 }
 
 export function TextWidget({ definition, value, onChange, onRemove }: TextWidgetProps) {
+  const widgetLabels = useWidgetLabels();
   return (
     <div className="ev-mf-chip">
       <span className="ev-mf-chip-label">
@@ -27,6 +29,7 @@ export function TextWidget({ definition, value, onChange, onRemove }: TextWidget
         <button
           type="button"
           onClick={onRemove}
+          aria-label={`${widgetLabels.removeFilter}: ${definition.label}`}
           className="ev-mf-chip-remove"
         >
           <X />
