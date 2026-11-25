@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useParentFullId } from '../store/NamespaceContext';
@@ -35,7 +35,13 @@ export function EasyVisionExportButton({
   const parentFullId = useParentFullId();
   const [isExporting, setIsExporting] = useState(false);
 
+  // Clicks in the same frame land before React paints the button disabled:
+  // a ref, not the state, keeps it to one file.
+  const runningRef = useRef(false);
+
   const handleClick = useCallback(async () => {
+    if (runningRef.current) return;
+    runningRef.current = true;
     setIsExporting(true);
     try {
       // Resolve every id up front (synchronous) so a partial resolution
@@ -87,6 +93,7 @@ export function EasyVisionExportButton({
       // Abort whole rather than ship a workbook silently missing a sheet.
       onError?.(error);
     } finally {
+      runningRef.current = false;
       setIsExporting(false);
     }
   }, [tables, parentFullId, sheetNames, filename, onEmpty, onError, format, csvDelimiter]);

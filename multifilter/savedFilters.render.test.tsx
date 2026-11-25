@@ -534,6 +534,33 @@ describe('export button, format csv', () => {
     });
     expect(text.replace(/^\uFEFF/, '').split('\r\n')).toEqual(['Nombre;Score', 'Ana;0,5', '']);
   });
+
+  it('downloads one file however many times it is clicked in the same frame', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const { EasyVisionExportButton } = await import('../export/EasyVisionExportButton');
+    const saved = vi.fn(() => 'blob:x');
+    URL.createObjectURL = saved as never;
+    URL.revokeObjectURL = vi.fn() as never;
+    act(() =>
+      root.render(
+        <>
+          <EasyVisionTable id="t" data={[{ id: '1', name: 'Ana' }]} columns={[{ field: 'name', header: 'Nombre' }]} />
+          <EasyVisionExportButton tables={['t']} filename="lista" format="csv" />
+        </>
+      )
+    );
+    await flush();
+    const b = button('Exportar')!;
+    act(() => {
+      b.click();
+      b.click();
+      b.click();
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(saved).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('the search bar', () => {
