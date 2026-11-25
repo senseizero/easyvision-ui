@@ -427,6 +427,25 @@ describe('icon buttons have names', () => {
     const names = [...document.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'));
     expect(names).toEqual(expect.arrayContaining(['Estado', 'Remove Completada', 'Remove filter: Estado']));
   });
+
+  it("names the inputs after their filter", async () => {
+    act(() =>
+      root.render(
+        <EasyVisionMultifilter
+          id="mf"
+          config={{
+            fields: [
+              { id: 'doc', type: 'text', label: 'Documento', field: 'dni', pinned: true },
+              { id: 'score', type: 'numberRange', label: 'Score', field: 'score', pinned: true },
+            ],
+          }}
+        />
+      )
+    );
+    await flush();
+    const names = [...document.querySelectorAll('input')].map((i) => i.getAttribute('aria-label'));
+    expect(names).toEqual(expect.arrayContaining(['Documento', 'Score (min)', 'Score (max)']));
+  });
 });
 
 describe('row click', () => {

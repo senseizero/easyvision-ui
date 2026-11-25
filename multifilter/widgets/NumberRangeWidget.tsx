@@ -32,6 +32,7 @@ export function NumberRangeWidget({
         type="number"
         className="ev-mf-chip-number"
         placeholder="Min"
+        aria-label={`${definition.label} (min)`}
         value={range.min ?? ''}
         onChange={(e) =>
           onChange({ ...range, min: e.target.value ? Number(e.target.value) : undefined })
@@ -42,6 +43,7 @@ export function NumberRangeWidget({
         type="number"
         className="ev-mf-chip-number"
         placeholder="Max"
+        aria-label={`${definition.label} (max)`}
         value={range.max ?? ''}
         onChange={(e) =>
           onChange({ ...range, max: e.target.value ? Number(e.target.value) : undefined })

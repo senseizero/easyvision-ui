@@ -22,6 +22,7 @@ export function TextWidget({ definition, value, onChange, onRemove }: TextWidget
       <Input
         className="ev-mf-chip-input"
         placeholder={definition.placeholder}
+        aria-label={definition.label}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
       />
