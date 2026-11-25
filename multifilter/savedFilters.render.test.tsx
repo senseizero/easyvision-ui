@@ -610,3 +610,40 @@ describe('the search bar', () => {
     expect([...document.querySelectorAll('.ev-mf-search-term')].map((c) => c.textContent)).toEqual(['acme']);
   });
 });
+
+describe('live mode', () => {
+  it('still searches a change when the parent re-renders before the debounce ends', async () => {
+    const onPerform = vi.fn();
+    const draw = (n: number) =>
+      act(() =>
+        root.render(
+          <EasyVisionMultifilter
+            id="mf"
+            // A new config object every render, as a page that builds its
+            // fields inline does.
+            config={{ fields: [{ ...config.fields[0], label: `Estado ${n}` }] }}
+            performMode="live"
+            performDebounceMs={100}
+            onPerform={onPerform}
+          />
+        )
+      );
+    draw(0);
+    await flush();
+    act(() => easyVisionRegistry.getState().patch('mf-multifilter', { values: { status: ['DONE'] } } as never));
+    // Re-render inside the debounce window, twice.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    draw(1);
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    draw(2);
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 250));
+    });
+    expect(onPerform).toHaveBeenCalledTimes(1);
+    expect(onPerform.mock.calls[0][0].query.where).toEqual({ status: { $in: ['DONE'] } });
+  });
+});

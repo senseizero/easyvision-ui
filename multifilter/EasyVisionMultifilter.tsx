@@ -344,6 +344,13 @@ export const EasyVisionMultifilter = forwardRef<
   // single perform.
   const liveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const livePrevKeyRef = useRef<string | null>(null);
+  // The timer calls the latest performAction. It must not depend on it:
+  // performAction is new on every render, and an effect that did would cancel
+  // the pending timer on any re-render (data landing, a parent building its
+  // fields inline) and, finding the key already seen, never set it again —
+  // the change was silently never searched.
+  const performActionRef = useRef(performAction);
+  performActionRef.current = performAction;
   useEffect(() => {
     if (resolvedPerformMode !== 'live') return;
     // Establish baseline on first mount without firing — initial seeds are the
@@ -359,16 +366,16 @@ export const EasyVisionMultifilter = forwardRef<
     if (liveTimerRef.current !== null) clearTimeout(liveTimerRef.current);
     liveTimerRef.current = setTimeout(() => {
       liveTimerRef.current = null;
-      performAction();
+      performActionRef.current();
     }, performDebounceMs);
-
-    return () => {
-      if (liveTimerRef.current !== null) {
-        clearTimeout(liveTimerRef.current);
-        liveTimerRef.current = null;
-      }
-    };
-  }, [snapshotKey, resolvedPerformMode, performDebounceMs, performAction]);
+  }, [snapshotKey, resolvedPerformMode, performDebounceMs]);
+  // A pending search dies with the component, not with a re-render.
+  useEffect(
+    () => () => {
+      if (liveTimerRef.current !== null) clearTimeout(liveTimerRef.current);
+    },
+    []
+  );
 
   useImperativeHandle(ref, () => ({
     perform: performAction,
