@@ -34,6 +34,8 @@ import type { MultifilterSliceData } from '../store/slice-types';
 import { MultifilterField } from './MultifilterField';
 import { textCondition, useBuildQuery } from './hooks/useMultifilterQuery';
 import { buildSnapshotKey, isDirty as computeIsDirty, isNonEmpty } from './hooks/useDirtyTracking';
+import { fromStored, toStored, useSavedFilters, type SavedFilter } from './savedFilters';
+import { SavedFiltersMenu } from './SavedFiltersMenu';
 
 const DEFAULT_LABELS: MultifilterLabels = {
   search: 'Buscar',
@@ -42,6 +44,14 @@ const DEFAULT_LABELS: MultifilterLabels = {
   addFilter: 'Añadir filtro',
   noOptions: 'Sin opciones',
   searchPlaceholder: 'Buscar...',
+  saved: 'Guardados',
+  noSaved: 'Aún no hay filtros guardados.',
+  saveNamePlaceholder: 'Nombre del filtro',
+  nothingToSave: 'Aplica una búsqueda para guardarla',
+  save: 'Guardar',
+  setDefault: 'Abrir siempre con este',
+  unsetDefault: 'Dejar de abrir con este',
+  deleteSaved: 'Borrar',
 };
 
 export type { MultifilterHandle } from '../types/multifilter.types';
@@ -84,6 +94,7 @@ export const EasyVisionMultifilter = forwardRef<
     className,
     persist = false,
     clearWhen,
+    savedFilters,
   } = props;
 
   // When `performMode === 'auto'` and we're rendered standalone (no parent
@@ -116,13 +127,36 @@ export const EasyVisionMultifilter = forwardRef<
     return v;
   }, [config]);
 
+  const saved = useSavedFilters(savedFilters?.storageKey);
+  // The values a saved query brings, with every field it names shown.
+  const savedState = useCallback(
+    (item: SavedFilter) => {
+      const restored = fromStored(item.filters, config.fields);
+      return {
+        values: restored,
+        activeFields: [...new Set([...initialActive, ...Object.keys(restored)])],
+      };
+    },
+    [config.fields, initialActive]
+  );
+  // Set when the slice is born from the default saved query, which must then
+  // be performed on mount like any seeded value.
+  const openedWithDefaultRef = useRef(false);
+
   const { slice, fullId, patch } = useEasyVisionSlice<'multifilter'>('multifilter', id, {
-    init: () => ({
-      kind: 'multifilter',
-      activeFields: initialActive,
-      values: initialValues,
-      lastConfirmedSnapshotJSON: null,
-    }),
+    init: () => {
+      // A fresh slice (nothing persisted) opens with the default saved query.
+      if (saved.defaultFilter) {
+        openedWithDefaultRef.current = true;
+        return { kind: 'multifilter', ...savedState(saved.defaultFilter), lastConfirmedSnapshotJSON: null };
+      }
+      return {
+        kind: 'multifilter',
+        activeFields: initialActive,
+        values: initialValues,
+        lastConfirmedSnapshotJSON: null,
+      };
+    },
     persist,
     clearWhen: clearWhen
       ? (s) =>
@@ -282,13 +316,19 @@ export const EasyVisionMultifilter = forwardRef<
   const didPerformOnMountRef = useRef(false);
   useEffect(() => {
     if (
-      performOnMount &&
+      (performOnMount || openedWithDefaultRef.current) &&
       !didPerformOnMountRef.current &&
       Object.values(composedValues).some(isNonEmpty)
     ) {
       didPerformOnMountRef.current = true;
       performAction();
     }
+    // An unmount drops the slice (unless persisted), and with it the confirmed
+    // search. A remount — StrictMode does one in development — must perform
+    // again, or Buscar stays enabled with nothing new to search.
+    return () => {
+      didPerformOnMountRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [performOnMount]);
 
@@ -357,7 +397,7 @@ export const EasyVisionMultifilter = forwardRef<
     [activeFields, values, patch]
   );
 
-  // Bumped by `clearAll` to re-perform after the cleared state renders.
+  // Bumped by `clearAll` and `applySaved` to re-perform once the new state renders.
   const [clearTick, setClearTick] = useState(0);
   // Defaults are the blank state of the filters, so clearing goes back to the
   // initial fields and values, not to nothing.
@@ -374,6 +414,29 @@ export const EasyVisionMultifilter = forwardRef<
       setClearTick((n) => n + 1);
     }
   }, [patch, initialValues, initialActive, lastConfirmedSnapshotJSON, resolvedPerformMode]);
+
+  // Applying a saved query replaces the filters and searches with them at once.
+  const applySaved = useCallback(
+    (item: SavedFilter) => {
+      patch({ ...savedState(item), lastConfirmedSnapshotJSON: null });
+      if (resolvedPerformMode !== 'live') setClearTick((n) => n + 1);
+    },
+    [patch, savedState, resolvedPerformMode]
+  );
+
+  // What is applied now is the last confirmed search, not what is staged.
+  const appliedValues = useMemo(() => {
+    if (!lastConfirmedSnapshotJSON) return {};
+    try {
+      return (JSON.parse(lastConfirmedSnapshotJSON) as { values?: Record<string, unknown> }).values ?? {};
+    } catch {
+      return {};
+    }
+  }, [lastConfirmedSnapshotJSON]);
+  const appliedToSave = useMemo(
+    () => toStored(appliedValues, config.fields),
+    [appliedValues, config.fields]
+  );
 
   useEffect(() => {
     if (clearTick > 0) performAction();
@@ -558,6 +621,19 @@ export const EasyVisionMultifilter = forwardRef<
                 {performIcon ?? <Search />}
                 {performLabelText}
               </Button>
+            )}
+
+            {savedFilters && (
+              <SavedFiltersMenu
+                items={saved.items}
+                defaultName={saved.defaultName}
+                canSave={Object.keys(appliedToSave).length > 0}
+                labels={labels}
+                onApply={applySaved}
+                onSave={(name) => saved.save(name, appliedToSave)}
+                onDelete={saved.remove}
+                onSetDefault={saved.setDefault}
+              />
             )}
 
             {showClear && (

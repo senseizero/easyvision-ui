@@ -1,3 +1,4 @@
+import type { SavedFiltersOptions } from '../multifilter/savedFilters';
 import type { ComponentType, ReactNode, RefObject } from 'react';
 import type { BaseStatefulProps, SelectorOption } from './common.types';
 
@@ -154,6 +155,15 @@ export interface MultifilterLabels {
   addFilter: string;
   noOptions: string;
   searchPlaceholder: string;
+  /** Saved filters ("Guardados") menu. */
+  saved: string;
+  noSaved: string;
+  saveNamePlaceholder: string;
+  nothingToSave: string;
+  save: string;
+  setDefault: string;
+  unsetDefault: string;
+  deleteSaved: string;
 }
 
 export interface MultifilterQuery {
@@ -218,4 +228,9 @@ export interface EasyVisionMultifilterProps extends BaseStatefulProps<Multifilte
   showClearAll?: boolean;
   labels?: Partial<MultifilterLabels>;
   className?: string;
+  /**
+   * Named saved queries ("Guardados"), kept in localStorage under
+   * `storageKey`. Off when omitted. See `multifilter/savedFilters.ts`.
+   */
+  savedFilters?: SavedFiltersOptions;
 }

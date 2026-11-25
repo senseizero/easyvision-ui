@@ -80,4 +80,5 @@ export type {
 } from './adapters/loopback';
 
 export { createIngotTableFetcher, toIngotWhere } from './adapters/ingot';
+export type { SavedFilter, SavedFiltersOptions } from './multifilter/savedFilters';
 export type { CreateIngotTableFetcherOptions, IngotFilter } from './adapters/ingot';

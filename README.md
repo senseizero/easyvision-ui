@@ -675,6 +675,38 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
 
 > `transform` is the deprecated old name for `toCondition` and is still accepted as an alias.
 
+### Saved filters ("Guardados")
+
+`savedFilters={{ storageKey }}` adds a **Guardados** button next to Limpiar. It keeps named queries per person:
+
+- **Guardar** names what is *applied* (the last Buscar), not what is staged; with nothing applied the form is disabled. A repeated name replaces the old one in place.
+- **Click a name** to replace the filters with it and search at once.
+- **★** makes it the default: a multifilter that opens clean (nothing persisted) opens with it and performs it, so a bound table loads already filtered. One default at most; ★ again removes it.
+- **🗑** deletes it (and the default, if it was).
+
+Storage is `localStorage[storageKey]`, so it is personal and per browser. Make the key unique per table **and** per account if people may share a browser. The shape is the one nml-vision v3's data-table writes, so a host that keeps v3's key (`nml.table.view:<viewKey>.saved.<userId>`) and field ids reads what people already saved there:
+
+```json
+{ "items": [{ "name": "Fallidas", "filters": { "status": ["FAILED"], "score": { "min": 3 } }, "search": [] }],
+  "defaultName": "Fallidas" }
+```
+
+`filters` is keyed by field id; dates are stored as local `YYYY-MM-DD` days and come back as `Date`s; a single string where a multiselect expects a list is read as a one-item list. Nested `multifilter` fields are not saved. Field ids the config no longer has are ignored.
+
+```tsx
+<EasyVisionTable
+  id="evaluations"
+  ingot={ingot}
+  multifilter={{
+    id: 'filters',
+    performButton: true,
+    config: { fields },
+    savedFilters: { storageKey: `nml.table.view:${view.key}.saved.${user.id}` },
+  }}
+  columns={columns}
+/>
+```
+
 ### Multifilter props
 
 | prop | type | default | notes |
@@ -695,6 +727,7 @@ Override per field with `toCondition: (value) => unknown` (return either a primi
 | `onStateChange` | `(snap) => void` | — | Same as `onChange`; provided for API symmetry. |
 | `showClearAll` | `boolean` | `editable` | Resets values & active fields to their initial state (`defaultValue`s and `pinned`/`initiallyActive` fields). |
 | `labels` | `Partial<MultifilterLabels>` | Spanish defaults | |
+| `savedFilters` | `{ storageKey: string }` | — | Shows the **Guardados** menu. See [Saved filters](#saved-filters-guardados). |
 | `className`, `persist`, `clearWhen` | as in Input/Selector | | |
 
 ---

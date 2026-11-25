@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['**/*.test.ts'],
+    include: ['**/*.test.ts', '**/*.test.tsx'],
     // Globs must be `**/`-prefixed: setting `exclude` replaces vitest's
     // defaults, and a root-anchored `node_modules/**` misses nested ones —
     // a git worktree under `.worktrees/` or any package shipping its own

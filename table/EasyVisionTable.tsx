@@ -224,7 +224,15 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
   }, [fetchData, page, itemsPerPage, sort, externalFilter, onDataLoaded]);
 
   useEffect(() => {
-    if (isApi && fetchData) void runFetch();
+    if (!isApi || !fetchData) return;
+    // A bound multifilter that opens with values (persisted, `defaultValue`s,
+    // a default saved query) performs on mount one microtask later, and that
+    // perform fetches. Queue behind it and skip if it already did: otherwise
+    // the table first loads unfiltered and flashes every row.
+    const seq = fetchSeqRef.current;
+    queueMicrotask(() => {
+      if (fetchSeqRef.current === seq) void runFetch();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isApi, page, itemsPerPage, sort, refetchSignal]);
 
