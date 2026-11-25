@@ -1,23 +1,23 @@
 import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { Check } from "lucide-react"
+import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox"
+import { Check, Minus } from "lucide-react"
 
 import { cn } from "./utils"
 
-const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <CheckboxPrimitive.Root
-    ref={ref}
-    className={cn("ev-checkbox", className)}
-    {...props}
-  >
-    <CheckboxPrimitive.Indicator className="ev-checkbox-indicator">
-      <Check />
-    </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive.Root>
-))
-Checkbox.displayName = CheckboxPrimitive.Root.displayName
+/** shadcn's base-nova checkbox (Base UI) with easyvision's `ev-*` classes. */
+function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
+  return (
+    <CheckboxPrimitive.Root className={cn("ev-checkbox", className)} {...props}>
+      <CheckboxPrimitive.Indicator
+        className="ev-checkbox-indicator"
+        render={(indicatorProps, state) => (
+          <span {...indicatorProps}>
+            {state.indeterminate ? <Minus /> : <Check />}
+          </span>
+        )}
+      />
+    </CheckboxPrimitive.Root>
+  )
+}
 
 export { Checkbox }

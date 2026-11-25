@@ -137,3 +137,38 @@ describe('EasyVisionSelector, clear button', () => {
     expect(onChange).toHaveBeenCalledWith(undefined);
   });
 });
+
+describe('EasyVisionSelector, searchable', () => {
+  it('filters the list by what is typed and reports the pick', async () => {
+    const onChange = vi.fn();
+    act(() =>
+      root.render(
+        <EasyVisionSelector
+          id="s"
+          value={null}
+          searchable
+          placeholder="Pick"
+          searchPlaceholder="Search"
+          options={[
+            { value: 'es', label: 'España' },
+            { value: 'pt', label: 'Portugal' },
+          ]}
+          onChange={onChange}
+        />
+      )
+    );
+    await flush();
+    const trigger = [...document.querySelectorAll('button')].find((b) => b.textContent?.includes('Pick'))!;
+    act(() => trigger.click());
+    await flush(50);
+    const search = document.querySelector<HTMLInputElement>('input[placeholder="Search"]')!;
+    expect(search).not.toBeNull();
+    type(search, 'port');
+    await flush(50);
+    const options = [...document.querySelectorAll('[role="option"]')].map((o) => o.textContent);
+    expect(options).toEqual(['Portugal']);
+    act(() => (document.querySelector('[role="option"]') as HTMLElement).click());
+    await flush();
+    expect(onChange).toHaveBeenCalledWith('pt');
+  });
+});

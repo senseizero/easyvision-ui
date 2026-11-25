@@ -8,20 +8,16 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Button } from '../ui/button';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { ChevronsUpDown, X } from 'lucide-react';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '../ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '../ui/command';
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '../ui/combobox';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import type { EasyVisionSelectorProps } from '../types/selector.types';
 import type { SelectorOption } from '../types/common.types';
@@ -37,6 +33,8 @@ export function EasyVisionSelector<V extends string | number = string | number>(
   confirmMode = false,
   confirmLabel = 'Confirmar',
   clearLabel = 'Limpiar',
+  searchPlaceholder = 'Buscar...',
+  noResultsLabel = 'Sin resultados',
   searchable = false,
   onChange,
   onStateChange,
@@ -113,50 +111,49 @@ export function EasyVisionSelector<V extends string | number = string | number>(
             {mandatory && <span className="ev-selector-required">*</span>}
           </span>
         )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              {...triggerProps}
-              variant="outline"
-              role="combobox"
-              disabled={disabled}
-              className={['ev-selector-combo-trigger', triggerExtraClasses].filter(Boolean).join(' ')}
-            >
-              {value !== undefined && value !== '' ? labelOf(value) : <span className="ev-selector-combo-placeholder">{placeholder}</span>}
-              <ChevronsUpDown className="ev-selector-combo-icon" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="ev-selector-combo-popover" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar..." />
-              <CommandList>
-                <CommandEmpty>Sin resultados</CommandEmpty>
-                <CommandGroup>
-                  {opts.map((o) => (
-                    <CommandItem
-                      key={String(o.value)}
-                      value={o.label}
-                      onSelect={() => commit(o.value)}
-                    >
-                      <Check className={['ev-selector-item-check', value === o.value ? '' : 'is-hidden'].filter(Boolean).join(' ')} />
-                      {o.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Combobox<SelectorOption<V>>
+          items={opts}
+          value={opts.find((o) => o.value === value) ?? null}
+          onValueChange={(o) => commit(o?.value)}
+          itemToStringLabel={(o) => o.label}
+          isItemEqualToValue={(a, b) => a.value === b.value}
+          disabled={disabled}
+        >
+          <ComboboxTrigger
+            render={
+              <Button
+                {...triggerProps}
+                variant="outline"
+                className={['ev-selector-combo-trigger', triggerExtraClasses].filter(Boolean).join(' ')}
+              />
+            }
+          >
+            {value !== undefined && value !== '' ? labelOf(value) : <span className="ev-selector-combo-placeholder">{placeholder}</span>}
+            <ChevronsUpDown className="ev-selector-combo-icon" />
+          </ComboboxTrigger>
+          <ComboboxContent className="ev-selector-combo-popover">
+            <ComboboxInput placeholder={searchPlaceholder} />
+            <ComboboxEmpty>{noResultsLabel}</ComboboxEmpty>
+            <ComboboxList>
+              {(o: SelectorOption<V>) => (
+                <ComboboxItem key={String(o.value)} value={o}>
+                  {o.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </div>
     );
   }
 
-  // Non-searchable: shadcn Select. Nothing picked is `''`: Radix shows the
-  // placeholder only then (a value matching no item drew an empty trigger).
-  const selectValue = value === undefined || value === '' ? '' : String(value);
+  // Non-searchable: shadcn Select (Base UI). Nothing picked is `null`, which
+  // shows the placeholder; `items` lets the trigger show the label, not the value.
+  const selectValue = value === undefined || value === '' ? null : String(value);
+  const selectItems = opts.map((o) => ({ value: String(o.value), label: o.label }));
 
-  const onValueChange = (raw: string) => {
-    if (raw === '') {
+  const onValueChange = (raw: string | null) => {
+    if (raw === null || raw === '') {
       if (confirmMode) setPending(undefined);
       else commit(undefined);
       return;
@@ -176,7 +173,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
         </span>
       )}
       <div className="ev-selector-row">
-        <Select value={selectValue} onValueChange={onValueChange} disabled={disabled}>
+        <Select value={selectValue} onValueChange={onValueChange} disabled={disabled} items={selectItems}>
           <SelectTrigger {...triggerProps} className={triggerExtraClasses || undefined}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>

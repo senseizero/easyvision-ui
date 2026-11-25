@@ -46,11 +46,9 @@ export function DateRangeWidget({
         {definition.mandatory && <span className="ev-mf-chip-required">*</span>}:
       </span>
       <Popover>
-        <PopoverTrigger asChild>
-          <button type="button" className="ev-mf-chip-trigger-btn">
+        <PopoverTrigger render={<button type="button" className="ev-mf-chip-trigger-btn" />}>
             <CalendarIcon />
             <span>{label}</span>
-          </button>
         </PopoverTrigger>
         <PopoverContent className="ev-mf-daterange-popover" align="start">
           <Calendar

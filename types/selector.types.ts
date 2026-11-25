@@ -25,6 +25,10 @@ export interface EasyVisionSelectorProps<V extends string | number = string | nu
   confirmLabel?: string;
   /** The clear button's name (shown when not `mandatory`). Default 'Limpiar'. */
   clearLabel?: string;
+  /** The search box's placeholder in `searchable` mode. Default 'Buscar...'. */
+  searchPlaceholder?: string;
+  /** What a `searchable` list says when nothing matches. Default 'Sin resultados'. */
+  noResultsLabel?: string;
   searchable?: boolean;
   onChange?: (value: V | undefined) => void;
   className?: string;

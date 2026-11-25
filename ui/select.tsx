@@ -1,140 +1,123 @@
 import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
+import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "./utils"
 
+/**
+ * shadcn's base-nova select (Base UI) with easyvision's `ev-*` classes. The
+ * trigger shows the raw value unless the root gets `items` (value → label).
+ */
 const Select = SelectPrimitive.Root
 
-const SelectGroup = SelectPrimitive.Group
+function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
+  return <SelectPrimitive.Group className={cn("ev-select-group", className)} {...props} />
+}
 
-const SelectValue = SelectPrimitive.Value
+function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+  return <SelectPrimitive.Value className={cn("ev-select-value", className)} {...props} />
+}
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn("ev-select-trigger", className)}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="ev-select-trigger-icon" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-))
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+function SelectTrigger({
+  className,
+  children,
+  ...props
+}: SelectPrimitive.Trigger.Props) {
+  return (
+    <SelectPrimitive.Trigger className={cn("ev-select-trigger", className)} {...props}>
+      {children}
+      <SelectPrimitive.Icon render={<ChevronDown className="ev-select-trigger-icon" />} />
+    </SelectPrimitive.Trigger>
+  )
+}
 
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn("ev-select-scroll-button", className)}
-    {...props}
-  >
-    <ChevronUp />
-  </SelectPrimitive.ScrollUpButton>
-))
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn("ev-select-scroll-button", className)}
-    {...props}
-  >
-    <ChevronDown />
-  </SelectPrimitive.ScrollDownButton>
-))
-SelectScrollDownButton.displayName =
-  SelectPrimitive.ScrollDownButton.displayName
-
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn("ev-select-content", className)}
-      position={position}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
-        className={cn(
-          "ev-select-viewport",
-          position === "popper" && "ev-select-viewport-popper"
-        )}
+function SelectContent({
+  className,
+  children,
+  side = "bottom",
+  sideOffset = 4,
+  align = "start",
+  alignOffset = 0,
+  // Below the trigger, as Radix's popper did: over it, the list hid the label.
+  alignItemWithTrigger = false,
+  ...props
+}: SelectPrimitive.Popup.Props &
+  Pick<
+    SelectPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
+  >) {
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Positioner
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        alignItemWithTrigger={alignItemWithTrigger}
+        className="ev-positioner"
       >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-))
-SelectContent.displayName = SelectPrimitive.Content.displayName
+        <SelectPrimitive.Popup className={cn("ev-select-content", className)} {...props}>
+          <SelectScrollUpButton />
+          <SelectPrimitive.List className="ev-select-viewport">{children}</SelectPrimitive.List>
+          <SelectScrollDownButton />
+        </SelectPrimitive.Popup>
+      </SelectPrimitive.Positioner>
+    </SelectPrimitive.Portal>
+  )
+}
 
-const SelectLabel = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Label>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label
-    ref={ref}
-    className={cn("ev-select-label", className)}
-    {...props}
-  />
-))
-SelectLabel.displayName = SelectPrimitive.Label.displayName
+function SelectLabel({ className, ...props }: SelectPrimitive.GroupLabel.Props) {
+  return <SelectPrimitive.GroupLabel className={cn("ev-select-label", className)} {...props} />
+}
 
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn("ev-select-item", className)}
-    {...props}
-  >
-    <span className="ev-select-item-indicator">
-      <SelectPrimitive.ItemIndicator>
-        <Check />
-      </SelectPrimitive.ItemIndicator>
-    </span>
+function SelectItem({ className, children, ...props }: SelectPrimitive.Item.Props) {
+  return (
+    <SelectPrimitive.Item className={cn("ev-select-item", className)} {...props}>
+      <span className="ev-select-item-indicator">
+        <SelectPrimitive.ItemIndicator>
+          <Check />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  )
+}
 
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-))
-SelectItem.displayName = SelectPrimitive.Item.displayName
+function SelectSeparator({ className, ...props }: SelectPrimitive.Separator.Props) {
+  return <SelectPrimitive.Separator className={cn("ev-select-separator", className)} {...props} />
+}
 
-const SelectSeparator = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator
-    ref={ref}
-    className={cn("ev-select-separator", className)}
-    {...props}
-  />
-))
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+function SelectScrollUpButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollUpArrow>) {
+  return (
+    <SelectPrimitive.ScrollUpArrow className={cn("ev-select-scroll-button", className)} {...props}>
+      <ChevronUp />
+    </SelectPrimitive.ScrollUpArrow>
+  )
+}
+
+function SelectScrollDownButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollDownArrow>) {
+  return (
+    <SelectPrimitive.ScrollDownArrow className={cn("ev-select-scroll-button", className)} {...props}>
+      <ChevronDown />
+    </SelectPrimitive.ScrollDownArrow>
+  )
+}
 
 export {
   Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
   SelectContent,
-  SelectLabel,
+  SelectGroup,
   SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
+  SelectLabel,
   SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
 }

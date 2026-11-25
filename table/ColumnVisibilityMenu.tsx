@@ -30,11 +30,9 @@ export function ColumnVisibilityMenu<T>({
 }: ColumnVisibilityMenuProps<T>) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
           <Settings2 className="ev-cv-icon" />
           {label}
-        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="ev-cv-menu">
         {table

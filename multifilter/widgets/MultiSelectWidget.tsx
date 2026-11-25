@@ -130,10 +130,8 @@ export function MultiSelectWidget({
         </span>
       ))}
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button type="button" className="ev-mf-chip-caret" aria-label={definition.label}>
+        <PopoverTrigger render={<button type="button" className="ev-mf-chip-caret" aria-label={definition.label} />}>
             <ChevronDown />
-          </button>
         </PopoverTrigger>
         <PopoverContent className="ev-mf-ms-popover" align="start">
           <Input

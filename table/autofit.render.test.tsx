@@ -145,9 +145,7 @@ describe("columnFit: 'hide'", () => {
     expect(slice.columnVisibility).toEqual({});
 
     const trigger = [...document.querySelectorAll('button')].find((b) => b.textContent?.includes('Columnas'))!;
-    act(() => {
-      trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
-    });
+    act(() => trigger.click());
     await flush();
     const gamma = [...document.querySelectorAll('[role="menuitemcheckbox"]')].find((i) =>
       i.textContent?.startsWith('Gamma')

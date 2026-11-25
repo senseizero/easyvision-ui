@@ -35,20 +35,18 @@ export function SelectAllControl({
   return (
     <div className="ev-sa-control">
       <Checkbox
-        checked={state === 'checked' ? true : state === 'indeterminate' ? 'indeterminate' : false}
+        checked={state === 'checked'}
+        indeterminate={state === 'indeterminate'}
         onCheckedChange={(c) => onToggle(!!c)}
         aria-label="Select all"
       />
       {toggleable && (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
+          <DropdownMenuTrigger render={<button
               type="button"
               className="ev-sa-toggle"
-              aria-label="Toggle select-all scope"
-            >
+              aria-label="Toggle select-all scope" />}>
               <ChevronDown className="ev-sa-toggle-icon" />
-            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <DropdownMenuRadioGroup

@@ -45,11 +45,9 @@ export function SavedFiltersMenu({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="ev-mf-saved-btn">
+      <PopoverTrigger render={<Button variant="outline" size="sm" className="ev-mf-saved-btn" />}>
           <Bookmark />
           {labels.saved}
-        </Button>
       </PopoverTrigger>
       <PopoverContent className="ev-mf-saved-popover" align="start">
         {items.length === 0 ? (

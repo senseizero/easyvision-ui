@@ -589,15 +589,12 @@ export const EasyVisionMultifilter = forwardRef<
 
             {editable && availableToAdd.length > 0 && (
               <Popover>
-                <PopoverTrigger asChild>
-                  <Button
+                <PopoverTrigger render={<Button
                     variant="outline"
                     size="sm"
                     className="ev-mf-add-btn"
-                    aria-label={labels.addFilter}
-                  >
+                    aria-label={labels.addFilter} />}>
                     <Plus />
-                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="ev-mf-add-popover" align="start">
                   <div className="ev-mf-add-list">
