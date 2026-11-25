@@ -494,3 +494,44 @@ describe('row click', () => {
     portal.remove();
   });
 });
+
+describe('export button, format csv', () => {
+  it("writes the table's visible columns and rows as CSV", async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const { EasyVisionExportButton } = await import('../export/EasyVisionExportButton');
+    const files: Blob[] = [];
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      files.push(blob);
+      return 'blob:x';
+    }) as never;
+    URL.revokeObjectURL = vi.fn() as never;
+    act(() =>
+      root.render(
+        <>
+          <EasyVisionTable
+            id="t"
+            data={[{ id: '1', name: 'Ana', score: 0.5 }]}
+            columns={[
+              { field: 'name', header: 'Nombre' },
+              { field: 'score', header: 'Score' },
+              { field: 'secret', header: 'Oculta', initiallyHidden: true },
+            ]}
+          />
+          <EasyVisionExportButton tables={['t']} filename="lista" format="csv" csvDelimiter=";" />
+        </>
+      )
+    );
+    await flush();
+    act(() => button('Exportar')!.click());
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(files).toHaveLength(1);
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsText(files[0]);
+    });
+    expect(text.replace(/^\uFEFF/, '').split('\r\n')).toEqual(['Nombre;Score', 'Ana;0,5', '']);
+  });
+});

@@ -1335,6 +1335,8 @@ Clicking it resolves `localTable` and `apiTable` against the tables mounted near
 | `disabled` | `boolean` | `false` | External disable, e.g. while a parent form is invalid. |
 | `className` | `string` | — | |
 | `icon` | `ReactNode` | a download icon | Replaces the default idle-state icon. The spinner shown while exporting is not overridable. |
+| `format` | `'xlsx' \| 'csv'` | `'xlsx'` | See [CSV instead of Excel](#csv-instead-of-excel-formatcsv). |
+| `csvDelimiter` | `',' \| ';'` | `','` | CSV only. With `';'`, decimals use `,`. |
 
 ### What gets exported
 
@@ -1346,6 +1348,20 @@ Clicking it resolves `localTable` and `apiTable` against the tables mounted near
 - **`largeScreensOnly` columns always export**, even when the viewport is too narrow to render them. `largeScreensOnly` is a CSS-only responsive hint — it never enters the visibility state — so if it affected the export, the same click would produce a different file on a phone than on a wide monitor. Hide a column from exports on purpose with `exportable: false` instead.
 
 Both resolvers run at export-click time, not at table-mount time, so a column toggle, a fresh multifilter query, or a changed selection made a second before clicking is always reflected — nothing needs to be re-registered.
+
+### CSV instead of Excel (`format="csv"`)
+
+`format="csv"` writes the same columns and rows as the Excel export (visibility, selection, `exportValue`, everything above applies), as CSV:
+
+- One file per table (CSV has no sheets): `<filename>_<timestamp>.csv`, or `<filename>_<sheet>_<timestamp>.csv` with several tables.
+- UTF-8 with BOM (so Excel does not read it as Latin-1), CRLF line ends, RFC 4180 quoting (a value is quoted when it carries the delimiter, a quote or a newline).
+- `csvDelimiter`: `','` (default) or `';'`. Pick what your users' Excel splits on — `;` in Spanish, Portuguese or French. With `';'`, decimals are written with `,` (`0,81`), as that Excel reads them. Dates are ISO 8601. `exportStyle` has no effect (CSV has no styles).
+
+```tsx
+<EasyVisionExportButton tables={['alerts']} filename="alertas" format="csv" csvDelimiter=";" />
+```
+
+`buildCsv(sheet, delimiter)` and `exportCsv(sheets, options)` are exported for building the file yourself.
 
 ### Resolving table ids
 

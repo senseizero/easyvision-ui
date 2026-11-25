@@ -22,6 +22,8 @@ export {
   sanitizeSheetName,
   downloadBlob,
 } from './export/buildWorkbook';
+export { buildCsv, exportCsv } from './export/buildCsv';
+export type { CsvDelimiter, ExportCsvOptions } from './export/buildCsv';
 export { toExportColumns } from './export/exportColumns';
 export { easyVisionRegistry, getSlice } from './store/registry';
 

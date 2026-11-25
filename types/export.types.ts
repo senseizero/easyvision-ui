@@ -66,4 +66,14 @@ export interface EasyVisionExportButtonProps {
   className?: string;
   /** Replaces the default download icon. */
   icon?: ReactNode;
+  /**
+   * `'xlsx'` (default): one workbook, a sheet per table. `'csv'`: a file per
+   * table, UTF-8 with BOM, RFC 4180 quoting.
+   */
+  format?: 'xlsx' | 'csv';
+  /**
+   * CSV only. `','` (default) or `';'` — what the users' Excel splits on: `;`
+   * in Spanish, Portuguese or French. With `';'`, decimals use `,`.
+   */
+  csvDelimiter?: ',' | ';';
 }

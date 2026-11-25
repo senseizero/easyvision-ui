@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { useParentFullId } from '../store/NamespaceContext';
 import { resolveExportSource } from './sources';
 import { exportSheets } from './buildWorkbook';
+import { exportCsv } from './buildCsv';
 import type {
   EasyVisionExportButtonProps,
   ExportLabels,
@@ -27,6 +28,8 @@ export function EasyVisionExportButton({
   disabled = false,
   className,
   icon,
+  format = 'xlsx',
+  csvDelimiter = ',',
 }: EasyVisionExportButtonProps) {
   const labels: ExportLabels = { ...DEFAULT_LABELS, ...labelOverrides };
   const parentFullId = useParentFullId();
@@ -75,7 +78,10 @@ export function EasyVisionExportButton({
         });
       }
 
-      const written = await exportSheets(sheets, { filename });
+      const written =
+        format === 'csv'
+          ? exportCsv(sheets, { filename, delimiter: csvDelimiter })
+          : await exportSheets(sheets, { filename });
       if (!written) onEmpty?.();
     } catch (error) {
       // Abort whole rather than ship a workbook silently missing a sheet.
@@ -83,7 +89,7 @@ export function EasyVisionExportButton({
     } finally {
       setIsExporting(false);
     }
-  }, [tables, parentFullId, sheetNames, filename, onEmpty, onError]);
+  }, [tables, parentFullId, sheetNames, filename, onEmpty, onError, format, csvDelimiter]);
 
   return (
     <Button
