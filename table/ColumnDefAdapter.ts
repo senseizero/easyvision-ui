@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { createElement, type ReactNode } from 'react';
 import type { ColumnDef, RowData } from '@tanstack/react-table';
 import type {
   DefaultSortingMode,
@@ -33,10 +33,40 @@ export function shouldDisableSorting<T>(
   return false;
 }
 
+/**
+ * One cell component per column, kept across renders. TanStack's flexRender
+ * renders a cell function as a component, so a new function per render is a
+ * new component type, and React would remount every cell of the table each
+ * time the host passes new column objects (the usual, unmemoized case). The
+ * component stays; it renders whatever `cell` the latest columns carry.
+ */
+export type CellCache = Map<string, CellEntry>;
+interface CellEntry {
+  render?: (row: any) => ReactNode;
+  Comp: (props: { row: { original: unknown }; getValue: () => unknown }) => ReactNode;
+}
+
+function stableCell(cache: CellCache, field: string, render: CellEntry['render']) {
+  let entry = cache.get(field);
+  if (!entry) {
+    const created: CellEntry = {
+      Comp: ({ row, getValue }) =>
+        created.render
+          ? created.render(row.original)
+          : createElement('span', { className: 'text-sm text-foreground' }, String(getValue() ?? '-')),
+    };
+    cache.set(field, created);
+    entry = created;
+  }
+  entry.render = render;
+  return entry.Comp;
+}
+
 export function adaptColumns<T extends RowData>(
   columns: EasyVisionColumn<T>[],
   orderingMode: TableMode,
-  defaultSorting: DefaultSortingMode = 'nonNested'
+  defaultSorting: DefaultSortingMode = 'nonNested',
+  cellCache: CellCache = new Map()
 ): ColumnDef<T>[] {
   return columns.map((c) => {
     // Resolve the *initial* width. For resizable columns we fall back to a
@@ -60,14 +90,7 @@ export function adaptColumns<T extends RowData>(
     const isUi = c.type === 'ui';
     const userCell = c.cell;
 
-    const wrappedCell = userCell
-      ? ({ row }: { row: { original: T } }) => userCell(row.original)
-      : ({ getValue }: { getValue: () => unknown }) =>
-          createElement(
-            'span',
-            { className: 'text-sm text-foreground' },
-            String(getValue() ?? '-')
-          );
+    const wrappedCell = stableCell(cellCache, c.field, userCell);
 
     const base: Record<string, unknown> = {
       id: c.field,

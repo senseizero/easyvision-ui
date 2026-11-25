@@ -22,7 +22,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
-import { adaptColumns, shouldDisableSorting } from './ColumnDefAdapter';
+import { adaptColumns, shouldDisableSorting, type CellCache } from './ColumnDefAdapter';
 import { useTableData } from './useTableData';
 import { applySelection } from './applySelection';
 import { resolveColumnVisibility, isColumnVisible } from './columnVisibility';
@@ -321,8 +321,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
   const isLoading = isLoadingProp || apiLoading;
 
   // Adapted TanStack columns.
+  const cellCacheRef = useRef<CellCache>(new Map());
   const tanstackColumns = useMemo<ColumnDef<T>[]>(
-    () => adaptColumns(columns, orderingMode, defaultSorting),
+    () => adaptColumns(columns, orderingMode, defaultSorting, cellCacheRef.current),
     [columns, orderingMode, defaultSorting]
   );
 

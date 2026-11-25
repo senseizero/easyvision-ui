@@ -329,3 +329,31 @@ describe('defaultSort', () => {
     expect(fetchData.mock.calls[fetchData.mock.calls.length - 1][0].sort).toBeNull();
   });
 });
+
+describe('cells across renders', () => {
+  it('keeps the same cell nodes when the host passes new column objects', async () => {
+    const { EasyVisionTable } = await import('../table/EasyVisionTable');
+    const rows = [{ id: '1', name: 'José' }];
+    const draw = (n: number) =>
+      act(() =>
+        root.render(
+          <EasyVisionTable
+            id="t"
+            data={rows}
+            // A new array and new cell functions every render, as a page that
+            // builds its columns inline does.
+            columns={[{ field: 'name', header: `Nombre ${n}`, cell: (row: { name: string }) => <b>{row.name}</b> }]}
+          />
+        )
+      );
+    draw(1);
+    await flush();
+    const before = document.querySelector('td b');
+    draw(2);
+    await flush();
+    const after = document.querySelector('td b');
+    expect(after?.textContent).toBe('José');
+    expect(after).toBe(before);
+    expect(before?.isConnected).toBe(true);
+  });
+});
