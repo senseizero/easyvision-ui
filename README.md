@@ -294,6 +294,15 @@ A debounced text input that persists its value by `id`.
 />
 ```
 
+### Controlled (forms)
+
+Pass `value` and the input shows it and reports **every keystroke at once** through `onChange` (no debounce, no registry state). `inputProps` reaches the native `<input>`: `id`, `type`, `name`, `required`, `autoComplete`, `aria-*`, `onKeyDown`…
+
+```tsx
+<EasyVisionInput id="new.name" value={name} onChange={setName}
+  inputProps={{ id: 'name', required: true, autoComplete: 'off' }} />
+```
+
 ### Props
 
 | prop | type | default | notes |
@@ -331,6 +340,15 @@ Single-select dropdown. Supports `searchable` (cmdk-backed combobox) and `confir
   ]}
   onChange={(v) => console.log(v)}
 />
+```
+
+### Controlled (forms)
+
+Pass `value` to drive it from outside (a form that pre-fills or resets): it shows that value and reports a pick through `onChange`, with no registry state. `null` is «nothing picked». `triggerProps` puts `id` (for a `<label htmlFor>`) and `aria-*` on the trigger.
+
+```tsx
+<EasyVisionSelector id="new.type" options={types} value={type} onChange={setType}
+  triggerProps={{ id: 'type', 'aria-invalid': !!errors.type }} />
 ```
 
 ### Async options

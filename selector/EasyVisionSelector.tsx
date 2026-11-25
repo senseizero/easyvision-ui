@@ -27,8 +27,6 @@ import type { EasyVisionSelectorProps } from '../types/selector.types';
 import type { SelectorOption } from '../types/common.types';
 import type { SelectorSliceData } from '../store/slice-types';
 
-const SENTINEL_UNDEFINED = '__easyvision_undef__';
-
 export function EasyVisionSelector<V extends string | number = string | number>({
   id,
   label,
@@ -45,7 +43,10 @@ export function EasyVisionSelector<V extends string | number = string | number>(
   disabled = false,
   persist = false,
   clearWhen,
+  value: controlledValue,
+  triggerProps,
 }: EasyVisionSelectorProps<V>) {
+  const controlled = controlledValue !== undefined;
   const { slice, patch } = useEasyVisionSlice<'selector'>('selector', id, {
     init: () => ({ kind: 'selector', value: defaultValue }),
     persist,
@@ -57,7 +58,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
       : undefined,
   });
 
-  const value = slice.value as V | undefined;
+  const value = (controlled ? controlledValue ?? undefined : slice.value) as V | undefined;
 
   const [resolved, setResolved] = useState<SelectorOption<V>[] | null>(
     Array.isArray(options) ? options : null
@@ -78,15 +79,20 @@ export function EasyVisionSelector<V extends string | number = string | number>(
 
   const lastEmittedRef = useRef<V | undefined>(value);
   useEffect(() => {
+    // Controlled: the pick was reported by `commit`.
+    if (controlled) return;
     if (value !== lastEmittedRef.current) {
       lastEmittedRef.current = value;
       onChange?.(value);
     }
-  }, [value, onChange]);
+  }, [value, onChange, controlled]);
 
   const isInvalid = mandatory && (value === undefined || value === '');
 
-  const commit = (v: V | undefined) => patch({ value: v });
+  const commit = (v: V | undefined) => {
+    if (controlled) onChange?.(v);
+    else patch({ value: v });
+  };
 
   const triggerExtraClasses = [
     isInvalid ? 'ev-selector-trigger-invalid' : '',
@@ -109,6 +115,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
         <Popover>
           <PopoverTrigger asChild>
             <Button
+              {...triggerProps}
               variant="outline"
               role="combobox"
               disabled={disabled}
@@ -143,14 +150,12 @@ export function EasyVisionSelector<V extends string | number = string | number>(
     );
   }
 
-  // Non-searchable: shadcn Select.
-  const selectValue =
-    value === undefined || value === ''
-      ? SENTINEL_UNDEFINED
-      : String(value);
+  // Non-searchable: shadcn Select. Nothing picked is `''`: Radix shows the
+  // placeholder only then (a value matching no item drew an empty trigger).
+  const selectValue = value === undefined || value === '' ? '' : String(value);
 
   const onValueChange = (raw: string) => {
-    if (raw === SENTINEL_UNDEFINED) {
+    if (raw === '') {
       if (confirmMode) setPending(undefined);
       else commit(undefined);
       return;
@@ -171,7 +176,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
       )}
       <div className="ev-selector-row">
         <Select value={selectValue} onValueChange={onValueChange} disabled={disabled}>
-          <SelectTrigger className={triggerExtraClasses || undefined}>
+          <SelectTrigger {...triggerProps} className={triggerExtraClasses || undefined}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>

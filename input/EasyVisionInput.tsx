@@ -22,7 +22,10 @@ export function EasyVisionInput({
   disabled = false,
   persist = false,
   clearWhen,
+  value: controlledValue,
+  inputProps,
 }: EasyVisionInputProps) {
+  const controlled = controlledValue !== undefined;
   const { slice, patch } = useEasyVisionSlice<'input'>('input', id, {
     init: () => ({ kind: 'input', value: defaultValue }),
     persist,
@@ -34,20 +37,28 @@ export function EasyVisionInput({
       : undefined,
   });
 
+  const current = controlled ? controlledValue : slice.value;
   const debounced = useDebouncedValue(slice.value, debounceMs);
   const lastEmittedRef = useRef<string>(slice.value);
 
   useEffect(() => {
+    // Controlled: every keystroke was already reported, undebounced.
+    if (controlled) return;
     if (debounced !== lastEmittedRef.current) {
       lastEmittedRef.current = debounced;
       onChange?.(debounced);
     }
-  }, [debounced, onChange]);
+  }, [debounced, onChange, controlled]);
 
-  const isInvalid = mandatory && slice.value.trim().length === 0;
+  const set = (next: string) => {
+    if (controlled) onChange?.(next);
+    else patch({ value: next });
+  };
+
+  const isInvalid = mandatory && current.trim().length === 0;
 
   const hasIcon = icon === 'search';
-  const hasClear = Boolean(showClearButton && slice.value && !disabled);
+  const hasClear = Boolean(showClearButton && current && !disabled);
 
   return (
     <div
@@ -69,16 +80,19 @@ export function EasyVisionInput({
       <div className="ev-input-comp-wrap">
         {hasIcon && <Search className="ev-input-comp-icon" />}
         <Input
-          className={isInvalid ? 'is-invalid' : undefined}
+          {...inputProps}
+          className={[isInvalid ? 'is-invalid' : '', inputProps?.className ?? '']
+            .filter(Boolean)
+            .join(' ') || undefined}
           placeholder={placeholder}
-          value={slice.value}
-          onChange={(e) => patch({ value: e.target.value })}
+          value={current}
+          onChange={(e) => set(e.target.value)}
           disabled={disabled}
         />
         {hasClear && (
           <button
             type="button"
-            onClick={() => patch({ value: '' })}
+            onClick={() => set('')}
             className="ev-input-comp-clear"
           >
             <X />
