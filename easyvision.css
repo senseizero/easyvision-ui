@@ -8,8 +8,16 @@
  * [-fg], --border, --input, --ring). Each var() has a sensible fallback so
  * the components remain readable in projects that don't define them.
  *
+ * Every colour reads `var(--ev-<token>, hsl(var(--<token>, fallback)))`:
+ * an `--ev-*` variable, when the host defines one, wins and holds a complete
+ * colour (oklch, hex, hsl()…). That is how shadcn v4 / Tailwind 4 hosts,
+ * whose --* variables are complete colours and break inside hsl(), give
+ * EasyVision its palette. Translucent shades use color-mix() so they work
+ * with either form.
+ *
  * Override strategy for consumer projects:
- *   - Redefine any --* variable on :root or under a dark-mode selector.
+ *   - Redefine any --* variable (HSL triplet) or --ev-* variable (complete
+ *     colour) on :root or under a dark-mode selector.
  *   - Add their own rules with equal-or-higher specificity. We never use
  *     `!important`, so simple class overrides win.
  *
@@ -78,7 +86,7 @@
   transition: background-color 0.15s, color 0.15s, opacity 0.15s;
 }
 .ev-btn:focus-visible {
-  outline: 2px solid hsl(var(--ring, 215 20% 65%));
+  outline: 2px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
   outline-offset: 2px;
 }
 .ev-btn:disabled {
@@ -93,37 +101,37 @@
 }
 
 .ev-btn-default {
-  background: hsl(var(--primary, 222 47% 11%));
-  color: hsl(var(--primary-foreground, 210 40% 98%));
+  background: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
+  color: var(--ev-primary-foreground, hsl(var(--primary-foreground, 210 40% 98%)));
 }
 .ev-btn-default:hover {
-  background: hsl(var(--primary, 222 47% 11%) / 0.9);
+  background: color-mix(in srgb, var(--ev-primary, hsl(var(--primary, 222 47% 11%))) 90%, transparent);
 }
 
 .ev-btn-destructive {
-  background: hsl(var(--destructive, 0 84% 60%));
-  color: hsl(var(--destructive-foreground, 210 40% 98%));
+  background: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
+  color: var(--ev-destructive-foreground, hsl(var(--destructive-foreground, 210 40% 98%)));
 }
 .ev-btn-destructive:hover {
-  background: hsl(var(--destructive, 0 84% 60%) / 0.9);
+  background: color-mix(in srgb, var(--ev-destructive, hsl(var(--destructive, 0 84% 60%))) 90%, transparent);
 }
 
 .ev-btn-outline {
-  border: 1px solid hsl(var(--input, 220 13% 91%));
-  background: hsl(var(--background, 0 0% 100%));
+  border: 1px solid var(--ev-input, hsl(var(--input, 220 13% 91%)));
+  background: var(--ev-background, hsl(var(--background, 0 0% 100%)));
   color: inherit;
 }
 .ev-btn-outline:hover {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 
 .ev-btn-secondary {
-  background: hsl(var(--secondary, 210 40% 96%));
-  color: hsl(var(--secondary-foreground, 222 47% 11%));
+  background: var(--ev-secondary, hsl(var(--secondary, 210 40% 96%)));
+  color: var(--ev-secondary-foreground, hsl(var(--secondary-foreground, 222 47% 11%)));
 }
 .ev-btn-secondary:hover {
-  background: hsl(var(--secondary, 210 40% 96%) / 0.8);
+  background: color-mix(in srgb, var(--ev-secondary, hsl(var(--secondary, 210 40% 96%))) 80%, transparent);
 }
 
 .ev-btn-ghost {
@@ -131,13 +139,13 @@
   color: inherit;
 }
 .ev-btn-ghost:hover {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 
 .ev-btn-link {
   background: transparent;
-  color: hsl(var(--primary, 222 47% 11%));
+  color: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
   text-underline-offset: 4px;
 }
 .ev-btn-link:hover {
@@ -170,8 +178,8 @@
   height: 2.5rem;
   width: 100%;
   border-radius: 0.375rem;
-  border: 1px solid hsl(var(--input, 220 13% 91%));
-  background: hsl(var(--background, 0 0% 100%));
+  border: 1px solid var(--ev-input, hsl(var(--input, 220 13% 91%)));
+  background: var(--ev-background, hsl(var(--background, 0 0% 100%)));
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
   line-height: 1.5rem;
@@ -179,10 +187,10 @@
   font-family: inherit;
 }
 .ev-input::placeholder {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-input:focus-visible {
-  outline: 2px solid hsl(var(--ring, 215 20% 65%));
+  outline: 2px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
   outline-offset: 2px;
 }
 .ev-input:disabled {
@@ -190,10 +198,10 @@
   opacity: 0.5;
 }
 .ev-input.is-invalid {
-  border-color: hsl(var(--destructive, 0 84% 60%));
+  border-color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-input.is-invalid:focus-visible {
-  outline-color: hsl(var(--destructive, 0 84% 60%) / 0.4);
+  outline-color: color-mix(in srgb, var(--ev-destructive, hsl(var(--destructive, 0 84% 60%))) 40%, transparent);
 }
 @media (min-width: 768px) {
   .ev-input {
@@ -222,9 +230,9 @@
   width: 1rem;
   flex-shrink: 0;
   border-radius: 0.25rem;
-  border: 1px solid hsl(var(--primary, 222 47% 11%));
+  border: 1px solid var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
   background: transparent;
-  color: hsl(var(--primary, 222 47% 11%));
+  color: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
   cursor: pointer;
 }
 /* Expand the click target without changing the visual size. The pseudo-element
@@ -236,7 +244,7 @@
   inset: -0.75rem;
 }
 .ev-checkbox:focus-visible {
-  outline: 2px solid hsl(var(--ring, 215 20% 65%));
+  outline: 2px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
   outline-offset: 2px;
 }
 .ev-checkbox:disabled {
@@ -244,12 +252,12 @@
   opacity: 0.5;
 }
 .ev-checkbox[data-state="checked"] {
-  background: hsl(var(--primary, 222 47% 11%));
-  color: hsl(var(--primary-foreground, 210 40% 98%));
+  background: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
+  color: var(--ev-primary-foreground, hsl(var(--primary-foreground, 210 40% 98%)));
 }
 .ev-checkbox[data-state="indeterminate"] {
-  background: hsl(var(--primary, 222 47% 11%));
-  color: hsl(var(--primary-foreground, 210 40% 98%));
+  background: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
+  color: var(--ev-primary-foreground, hsl(var(--primary-foreground, 210 40% 98%)));
 }
 .ev-checkbox-indicator {
   display: flex;
@@ -271,9 +279,9 @@
 .ev-dropdown-sub-content {
   z-index: 50;
   border-radius: 0.375rem;
-  border: 1px solid hsl(var(--border, 220 13% 91%));
-  background: hsl(var(--popover, 0 0% 100%));
-  color: hsl(var(--popover-foreground, 222 47% 11%));
+  border: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
+  background: var(--ev-popover, hsl(var(--popover, 0 0% 100%)));
+  color: var(--ev-popover-foreground, hsl(var(--popover-foreground, 222 47% 11%)));
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   outline: none;
 }
@@ -296,8 +304,8 @@
   align-items: center;
   justify-content: space-between;
   border-radius: 0.375rem;
-  border: 1px solid hsl(var(--input, 220 13% 91%));
-  background: hsl(var(--background, 0 0% 100%));
+  border: 1px solid var(--ev-input, hsl(var(--input, 220 13% 91%)));
+  background: var(--ev-background, hsl(var(--background, 0 0% 100%)));
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -306,7 +314,7 @@
   cursor: pointer;
 }
 .ev-select-trigger:focus {
-  outline: 2px solid hsl(var(--ring, 215 20% 65%));
+  outline: 2px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
   outline-offset: 2px;
 }
 .ev-select-trigger:disabled {
@@ -314,7 +322,7 @@
   opacity: 0.5;
 }
 .ev-select-trigger[data-placeholder] {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-select-trigger > span {
   overflow: hidden;
@@ -394,8 +402,8 @@
 }
 .ev-select-item[data-highlighted],
 .ev-select-item:focus {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-select-item[data-disabled] {
   pointer-events: none;
@@ -418,7 +426,7 @@
 .ev-select-separator {
   margin: 0.25rem -0.25rem;
   height: 1px;
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 
 /* ---------- DropdownMenu ---------- */
@@ -461,8 +469,8 @@
 .ev-dropdown-item[data-highlighted],
 .ev-dropdown-sub-trigger[data-state="open"],
 .ev-dropdown-sub-trigger[data-highlighted] {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-dropdown-item[data-disabled] {
   pointer-events: none;
@@ -495,8 +503,8 @@
 }
 .ev-dropdown-checkbox-item[data-highlighted],
 .ev-dropdown-radio-item[data-highlighted] {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-dropdown-checkbox-item[data-disabled],
 .ev-dropdown-radio-item[data-disabled] {
@@ -532,7 +540,7 @@
 .ev-dropdown-separator {
   margin: 0.25rem -0.25rem;
   height: 1px;
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 
 .ev-dropdown-shortcut {
@@ -555,13 +563,13 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 0.375rem;
-  background: hsl(var(--popover, 0 0% 100%));
-  color: hsl(var(--popover-foreground, 222 47% 11%));
+  background: var(--ev-popover, hsl(var(--popover, 0 0% 100%)));
+  color: var(--ev-popover-foreground, hsl(var(--popover-foreground, 222 47% 11%)));
 }
 .ev-cmd-input-wrapper {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid hsl(var(--border, 220 13% 91%));
+  border-bottom: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
   padding: 0 0.75rem;
 }
 .ev-cmd-input-icon {
@@ -585,7 +593,7 @@
   color: inherit;
 }
 .ev-cmd-input::placeholder {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-cmd-input:disabled {
   cursor: not-allowed;
@@ -605,19 +613,19 @@
 .ev-cmd-group {
   overflow: hidden;
   padding: 0.25rem;
-  color: hsl(var(--foreground, 222 47% 11%));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
 }
 .ev-cmd-group [cmdk-group-heading] {
   padding: 0.375rem 0.5rem;
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-cmd-separator {
   margin: 0 -0.25rem;
   height: 1px;
-  background: hsl(var(--border, 220 13% 91%));
+  background: var(--ev-border, hsl(var(--border, 220 13% 91%)));
 }
 .ev-cmd-item {
   position: relative;
@@ -632,8 +640,8 @@
   outline: none;
 }
 .ev-cmd-item[data-selected="true"] {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-cmd-item[data-disabled="true"] {
   pointer-events: none;
@@ -644,7 +652,7 @@
   font-size: 0.75rem;
   line-height: 1rem;
   letter-spacing: 0.1em;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 
 /* ---------- Calendar (react-day-picker) ---------- */
@@ -719,7 +727,7 @@
   display: flex;
 }
 .ev-cal-head-cell {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   border-radius: 0.375rem;
   width: 2.25rem;
   font-weight: 400;
@@ -740,10 +748,10 @@
   position: relative;
 }
 .ev-cal-cell:has([aria-selected]) {
-  background: hsl(var(--accent, 210 40% 96%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
 }
 .ev-cal-cell:has([aria-selected].day-outside) {
-  background: hsl(var(--accent, 210 40% 96%) / 0.5);
+  background: color-mix(in srgb, var(--ev-accent, hsl(var(--accent, 210 40% 96%))) 50%, transparent);
 }
 .ev-cal-cell:first-child:has([aria-selected]) {
   border-top-left-radius: 0.375rem;
@@ -770,27 +778,27 @@
 .ev-cal-day-selected,
 .ev-cal-day-selected:hover,
 .ev-cal-day-selected:focus {
-  background: hsl(var(--primary, 222 47% 11%));
-  color: hsl(var(--primary-foreground, 210 40% 98%));
+  background: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
+  color: var(--ev-primary-foreground, hsl(var(--primary-foreground, 210 40% 98%)));
 }
 .ev-cal-day-today {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-cal-day-outside {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-cal-day-outside[aria-selected="true"] {
-  background: hsl(var(--accent, 210 40% 96%) / 0.5);
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  background: color-mix(in srgb, var(--ev-accent, hsl(var(--accent, 210 40% 96%))) 50%, transparent);
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-cal-day-disabled {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   opacity: 0.5;
 }
 .ev-cal-day-range-middle[aria-selected="true"] {
-  background: hsl(var(--accent, 210 40% 96%));
-  color: hsl(var(--accent-foreground, 222 47% 11%));
+  background: var(--ev-accent, hsl(var(--accent, 210 40% 96%)));
+  color: var(--ev-accent-foreground, hsl(var(--accent-foreground, 222 47% 11%)));
 }
 .ev-cal-day-hidden {
   visibility: hidden;
@@ -803,9 +811,9 @@
 /* ---------- Card ---------- */
 .ev-card {
   border-radius: 0.375rem;
-  border: 1px solid hsl(var(--border, 220 13% 91%));
-  background: hsl(var(--card, 0 0% 100%));
-  color: hsl(var(--card-foreground, 222 47% 11%));
+  border: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
+  background: var(--ev-card, hsl(var(--card, 0 0% 100%)));
+  color: var(--ev-card-foreground, hsl(var(--card-foreground, 222 47% 11%)));
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .ev-card-header {
@@ -825,7 +833,7 @@
 .ev-card-description {
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-card-content {
   padding: 1.5rem;
@@ -845,7 +853,7 @@
   gap: 1rem;
 }
 .ev-accordion-item {
-  border: 1px solid hsl(var(--border, 220 13% 91%));
+  border: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
   border-radius: 0.375rem;
   overflow: hidden;
 }
@@ -857,14 +865,14 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   text-align: left;
-  background: hsl(var(--muted, 220 13% 91%));
-  color: hsl(var(--foreground, 222 47% 11%));
+  background: var(--ev-muted, hsl(var(--muted, 220 13% 91%)));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 .ev-accordion-trigger:hover {
-  background: hsl(var(--muted, 220 13% 91%) / 0.8);
+  background: color-mix(in srgb, var(--ev-muted, hsl(var(--muted, 220 13% 91%))) 80%, transparent);
 }
 .ev-accordion-trigger:disabled {
   cursor: not-allowed;
@@ -877,7 +885,7 @@
   height: 1.25rem;
   width: 1.25rem;
   flex-shrink: 0;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   transition: transform 0.2s ease;
 }
 .ev-accordion-trigger-open .ev-accordion-icon {
@@ -885,8 +893,8 @@
 }
 .ev-accordion-panel {
   padding: 0.75rem 1rem;
-  background: hsl(var(--card, 0 0% 100%));
-  color: hsl(var(--foreground, 222 47% 11%));
+  background: var(--ev-card, hsl(var(--card, 0 0% 100%)));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
 }
 
 /* ---------- EasyVisionInput (text + optional search icon + clear) ---------- */
@@ -899,11 +907,11 @@
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-input-comp-required {
   margin-left: 0.125rem;
-  color: hsl(var(--destructive, 0 84% 60%));
+  color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-input-comp-wrap {
   position: relative;
@@ -915,7 +923,7 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   pointer-events: none;
 }
 .ev-input-comp .ev-input {
@@ -940,12 +948,12 @@
   display: inline-flex;
 }
 .ev-input-comp-clear:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-input-comp-clear svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 
 /* ---------- EasyVisionSelector ---------- */
@@ -958,11 +966,11 @@
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-selector-required {
   margin-left: 0.125rem;
-  color: hsl(var(--destructive, 0 84% 60%));
+  color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-selector-row {
   display: flex;
@@ -975,10 +983,10 @@
   font-weight: 400;
 }
 .ev-selector-combo-trigger.is-invalid {
-  border-color: hsl(var(--destructive, 0 84% 60%));
+  border-color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-selector-combo-placeholder {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-selector-combo-icon {
   margin-left: 0.5rem;
@@ -1000,7 +1008,7 @@
   opacity: 0;
 }
 .ev-selector-trigger-invalid {
-  border-color: hsl(var(--destructive, 0 84% 60%));
+  border-color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-selector-clear {
   padding: 0.25rem;
@@ -1011,19 +1019,19 @@
   display: inline-flex;
 }
 .ev-selector-clear:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-selector-clear svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 
 /* ---------- EasyVisionMultifilter ---------- */
 .ev-mf-panel {
   padding: 0.75rem;
-  background: hsl(var(--card, 0 0% 100%));
-  border: 1px solid hsl(var(--border, 220 13% 91%));
+  background: var(--ev-card, hsl(var(--card, 0 0% 100%)));
+  border: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
   border-radius: 0.375rem;
 }
 .ev-mf-panel > * + * {
@@ -1047,14 +1055,14 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   pointer-events: none;
 }
 .ev-mf-search-input {
   width: 100%;
   height: 2.25rem;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
   border: 0;
   border-radius: 0.375rem;
   font-size: 0.875rem;
@@ -1069,11 +1077,11 @@
   padding-right: 0.75rem;
 }
 .ev-mf-search-input::placeholder {
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-search-input:focus-visible {
-  outline: 1px solid hsl(var(--ring, 215 20% 65%));
-  background: hsl(var(--card, 0 0% 100%));
+  outline: 1px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
+  background: var(--ev-card, hsl(var(--card, 0 0% 100%)));
 }
 .ev-mf-search-clear {
   position: absolute;
@@ -1088,27 +1096,27 @@
   display: inline-flex;
 }
 .ev-mf-search-clear:hover {
-  background: hsl(var(--muted-foreground, 215 16% 47%) / 0.1);
+  background: color-mix(in srgb, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))) 10%, transparent);
 }
 .ev-mf-search-clear svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-add-btn {
   height: 2.25rem;
   width: 2.25rem;
   padding: 0;
-  border: 1px dashed hsl(var(--border, 220 13% 91%));
+  border: 1px dashed var(--ev-border, hsl(var(--border, 220 13% 91%)));
   border-radius: 0.375rem;
 }
 .ev-mf-add-btn:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-add-btn svg {
   width: 1rem;
   height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-add-popover {
   width: 13rem;
@@ -1134,12 +1142,12 @@
   font-family: inherit;
 }
 .ev-mf-add-item:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-add-item svg {
   width: 0.75rem;
   height: 0.75rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-perform {
   height: 2.25rem;
@@ -1158,7 +1166,7 @@
   padding: 0 0.75rem;
   font-size: 0.75rem;
   line-height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-clear svg {
   width: 0.875rem;
@@ -1172,8 +1180,8 @@
 }
 .ev-mf-nested {
   border-radius: 0.375rem;
-  border: 1px dashed hsl(var(--border, 220 13% 91%));
-  background: hsl(var(--muted, 210 40% 96%) / 0.3);
+  border: 1px dashed var(--ev-border, hsl(var(--border, 220 13% 91%)));
+  background: color-mix(in srgb, var(--ev-muted, hsl(var(--muted, 210 40% 96%))) 30%, transparent);
   padding: 0.5rem;
 }
 .ev-mf-nested-header {
@@ -1186,7 +1194,7 @@
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-nested-remove {
   margin-left: auto;
@@ -1198,12 +1206,12 @@
   display: inline-flex;
 }
 .ev-mf-nested-remove:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-nested-remove svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 
 /* ---------- Multifilter widgets (shared chip styling) ---------- */
@@ -1212,8 +1220,8 @@
   align-items: center;
   gap: 0.5rem;
   border-radius: 0.375rem;
-  border: 1px solid hsl(var(--border, 220 13% 91%));
-  background: hsl(var(--card, 0 0% 100%));
+  border: 1px solid var(--ev-border, hsl(var(--border, 220 13% 91%)));
+  background: var(--ev-card, hsl(var(--card, 0 0% 100%)));
   padding: 0.375rem 0.75rem;
 }
 .ev-mf-chip.is-wrap {
@@ -1225,7 +1233,7 @@
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   white-space: nowrap;
 }
 .ev-mf-chip-label.is-clickable {
@@ -1234,7 +1242,7 @@
 }
 .ev-mf-chip-required {
   margin-left: 0.125rem;
-  color: hsl(var(--destructive, 0 84% 60%));
+  color: var(--ev-destructive, hsl(var(--destructive, 0 84% 60%)));
 }
 .ev-mf-chip-remove {
   margin-left: 0.25rem;
@@ -1247,12 +1255,12 @@
   transition: background-color 0.15s;
 }
 .ev-mf-chip-remove:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-chip-remove svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-chip-input {
   height: 1.75rem;
@@ -1278,13 +1286,13 @@
   padding: 0;
   font-size: 0.75rem;
   line-height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-chip-select-trigger:focus {
   outline: none;
 }
 .ev-mf-chip-select-trigger:hover {
-  color: hsl(var(--foreground, 222 47% 11%));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
 }
 .ev-mf-chip-select-trigger .ev-select-trigger-icon {
   width: 0.875rem;
@@ -1306,7 +1314,7 @@
 .ev-mf-chip-dash {
   font-size: 0.75rem;
   line-height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
 .ev-mf-chip-trigger-btn {
   display: inline-flex;
@@ -1322,7 +1330,7 @@
   font-family: inherit;
 }
 .ev-mf-chip-trigger-btn:hover {
-  color: hsl(var(--foreground, 222 47% 11%));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
 }
 .ev-mf-chip-trigger-btn svg {
   width: 0.875rem;
@@ -1334,7 +1342,7 @@
   gap: 0.25rem;
   font-size: 0.75rem;
   line-height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
   background: transparent;
   border: 0;
   padding: 0;
@@ -1342,7 +1350,7 @@
   font-family: inherit;
 }
 .ev-mf-chip-caret:hover {
-  color: hsl(var(--foreground, 222 47% 11%));
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
 }
 .ev-mf-chip-caret svg {
   width: 0.875rem;
@@ -1354,8 +1362,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: hsl(var(--primary, 222 47% 11%) / 0.1);
-  color: hsl(var(--primary, 222 47% 11%));
+  background: color-mix(in srgb, var(--ev-primary, hsl(var(--primary, 222 47% 11%))) 10%, transparent);
+  color: var(--ev-primary, hsl(var(--primary, 222 47% 11%)));
   font-size: 0.75rem;
   line-height: 1rem;
   padding: 0.125rem 0.5rem;
@@ -1370,7 +1378,7 @@
   display: inline-flex;
 }
 .ev-mf-chip-badge-x:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-chip-badge-x svg {
   width: 0.75rem;
@@ -1409,11 +1417,11 @@
   line-height: 1rem;
 }
 .ev-mf-ms-option:hover {
-  background: hsl(var(--muted, 210 40% 96%));
+  background: var(--ev-muted, hsl(var(--muted, 210 40% 96%)));
 }
 .ev-mf-ms-empty {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   line-height: 1rem;
-  color: hsl(var(--muted-foreground, 215 16% 47%));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }

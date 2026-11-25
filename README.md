@@ -1732,6 +1732,18 @@ Things that bit us during development and are easy to miss at integration time.
 
 - **All colours come from shadcn semantic tokens.** Components rely on `--background`, `--foreground`, `--border`, `--muted`, `--card`, `--primary`, `--destructive`, etc. If your project doesn't define these (i.e. it isn't shadcn-themed), components will render with no styling.
 - **`.dark` mode is automatic** if your project applies the `.dark` class on a parent. EasyVision uses no hardcoded colors.
+- **shadcn v4 / Tailwind 4 hosts** define those tokens as complete colours (`--primary: oklch(…)`), which is invalid inside the `hsl(var(--primary))` EasyVision paints with: the colours come out blank. Define the `--ev-*` twin of each token instead (same names with an `ev-` prefix, any CSS colour). An `--ev-*` variable, when present, always wins over its shadcn token, so it is also how a host gives EasyVision a palette different from its own:
+
+  ```css
+  :root {
+    --ev-primary: #5b87da;
+    --ev-border: hsl(162 8% 85%);
+    --ev-muted-foreground: var(--muted-foreground); /* follow the host's own token */
+  }
+  .dark { --ev-primary: #71adff; }
+  ```
+
+  Tokens: `background`, `foreground`, `card[-foreground]`, `popover[-foreground]`, `primary[-foreground]`, `secondary[-foreground]`, `muted[-foreground]`, `accent[-foreground]`, `destructive[-foreground]`, `border`, `input`, `ring`.
 
 ---
 
