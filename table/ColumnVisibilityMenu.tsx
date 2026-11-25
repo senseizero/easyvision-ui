@@ -12,9 +12,22 @@ import { Settings2 } from 'lucide-react';
 export interface ColumnVisibilityMenuProps<T> {
   table: Table<T>;
   label: string;
+  /**
+   * The person's choice. With `columnFit: 'hide'` the table may draw fewer
+   * columns than chosen; the menu shows the choice, and marks those.
+   */
+  chosen?: Record<string, boolean>;
+  autoHidden?: ReadonlySet<string>;
+  noRoom?: string;
 }
 
-export function ColumnVisibilityMenu<T>({ table, label }: ColumnVisibilityMenuProps<T>) {
+export function ColumnVisibilityMenu<T>({
+  table,
+  label,
+  chosen,
+  autoHidden,
+  noRoom,
+}: ColumnVisibilityMenuProps<T>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,11 +49,12 @@ export function ColumnVisibilityMenu<T>({ table, label }: ColumnVisibilityMenuPr
             return (
               <DropdownMenuCheckboxItem
                 key={col.id}
-                checked={col.getIsVisible()}
+                checked={chosen ? chosen[col.id] !== false : col.getIsVisible()}
                 onCheckedChange={(v) => col.toggleVisibility(!!v)}
                 className="ev-cv-item"
               >
                 {headerLabel}
+                {autoHidden?.has(col.id) && <span className="ev-cv-no-room"> {noRoom}</span>}
               </DropdownMenuCheckboxItem>
             );
           })}

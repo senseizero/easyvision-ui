@@ -65,6 +65,18 @@ export type EasyVisionColumn<T> =
        * Combine with `width` (or `resizable`) to bound the column — without a
        * width, a `<table>` cell will still expand to fit, defeating truncation.
        */
+      /**
+       * `columnFit: 'hide'`: higher stays longer when width runs out. Without
+       * one, columns drop right to left; the first column and a header-less
+       * one (a row's actions) never drop.
+       */
+      priority?: number;
+      /**
+       * A column whose text wraps (a title, a name): the narrowest it gets, in
+       * px. Its cells break lines, and `columnFit: 'hide'` reserves this much
+       * for it instead of its one-line width.
+       */
+      minWidth?: number;
       truncate?: boolean;
       /**
        * Allow the user to drag the column's right edge to resize it. The
@@ -109,6 +121,10 @@ export type EasyVisionColumn<T> =
       width?: number | string;
       /** See data-column docs. */
       truncate?: boolean;
+      /** See data-column docs. */
+      priority?: number;
+      /** See data-column docs. */
+      minWidth?: number;
       /** See data-column docs. */
       resizable?: boolean;
       /**
@@ -179,6 +195,8 @@ export interface TableLabels {
   selectRow: string;
   previousPage: string;
   nextPage: string;
+  /** Column menu, next to a column `columnFit: 'hide'` hid for lack of width. */
+  noRoom: string;
 }
 
 export interface EasyVisionTableProps<T> extends BaseStatefulProps {
@@ -190,6 +208,13 @@ export interface EasyVisionTableProps<T> extends BaseStatefulProps {
    * Defaults to `'nonNested'`.
    */
   defaultSorting?: DefaultSortingMode;
+  /**
+   * What a table that runs out of width does. `'scroll'` (default): it
+   * scrolls sideways. `'hide'`: it hides columns by `priority` and brings
+   * them back as it widens; the column menu marks them «sin sitio», and the
+   * export and the saved visibility never see that hiding.
+   */
+  columnFit?: 'scroll' | 'hide';
 
   /** local mode: full dataset; the table slices it. */
   data?: T[];

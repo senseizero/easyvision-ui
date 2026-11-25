@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   type ColumnDef,
   type ColumnSizingState,
@@ -31,6 +31,7 @@ import { sortLocalRows } from './sortLocalRows';
 import { SelectAllControl } from './SelectAllControl';
 import { PaginationFooter } from './PaginationFooter';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
+import { fitColumns } from './autofit';
 import { EasyVisionMultifilter, type MultifilterHandle } from '../multifilter/EasyVisionMultifilter';
 import { createLoopbackTableFetcher, matchLoopbackWhere } from '../adapters/loopback';
 import { createIngotTableFetcher } from '../adapters/ingot';
@@ -62,6 +63,7 @@ const DEFAULT_LABELS: TableLabels = {
   selectRow: 'Seleccionar',
   previousPage: 'Página anterior',
   nextPage: 'Página siguiente',
+  noRoom: '(sin sitio)',
 };
 
 /**
@@ -94,6 +96,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     reloadSignal,
     ariaLabel,
     getRowLabel,
+    columnFit = 'scroll',
     onDataLoaded,
     multifilter,
     multifilterRef,
@@ -379,6 +382,88 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     [columns, slice.columnVisibility]
   );
 
+  // `columnFit: 'hide'`: a table that runs out of width hides columns by
+  // priority instead of scrolling (`fitColumns` decides; here we measure).
+  // The widest each column has painted is cached and pinned on its header,
+  // so a column does not jump with every page's longest text. What the fit
+  // hides is screen state only: it never reaches the slice's visibility, the
+  // column menu's ticks or the export.
+  const fitByHiding = columnFit === 'hide';
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const widthsRef = useRef(new Map<string, number>());
+  const [pinned, setPinned] = useState<Record<string, number>>({});
+  const [autoHidden, setAutoHidden] = useState<ReadonlySet<string>>(NO_AUTO_HIDDEN);
+  // The observer only wakes the measuring: a window resize renders nothing.
+  const [measureTick, setMeasureTick] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!fitByHiding || !el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setMeasureTick((t) => (t + 1) % 1024));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fitByHiding]);
+  useLayoutEffect(() => {
+    if (!fitByHiding) return;
+    const container = scrollRef.current;
+    const available = container?.clientWidth ?? 0;
+    // Nothing measured (jsdom, display:none): never hide blindly.
+    if (!container || available === 0) return;
+    const declared = new Set(
+      columns.filter((c) => c.width != null || c.resizable).map((c) => c.field)
+    );
+    if (measureWidest(container, declared, widthsRef.current)) {
+      setPinned(Object.fromEntries(widthsRef.current));
+    }
+    const chosen = columns.filter((c) => isColumnVisible(columnVisibility, c.field));
+    const fit = fitColumns(
+      [
+        ...(enableRowSelection
+          ? [
+              {
+                id: '_select',
+                width: widthsRef.current.get('_select') ?? 36,
+                priority: Infinity,
+                essential: true,
+                hidden: false,
+              },
+            ]
+          : []),
+        ...chosen.map((c, index) => ({
+          id: c.field,
+          width: Math.min(widthsRef.current.get(c.field) ?? 0, c.minWidth ?? Infinity),
+          // Undeclared: right to left. One that started hidden and someone
+          // switched on in the menu outranks every other — last in the queue,
+          // it would never show and the menu would only say «sin sitio».
+          priority:
+            (c.priority ?? -index) +
+            (c.initiallyHidden && slice.columnVisibility[c.field] === true ? ASKED_FOR : 0),
+          essential: index === 0 || c.header === '' || c.header == null,
+          hidden: autoHidden.has(c.field),
+        })),
+      ],
+      available
+    );
+    const next = new Set(chosen.map((c) => c.field).filter((f) => !fit.has(f)));
+    setAutoHidden((current) => (sameSet(current, next) ? current : next));
+    // measureTick is the observer's alarm; rows re-measure every page.
+  }, [
+    fitByHiding,
+    columns,
+    columnVisibility,
+    slice.columnVisibility,
+    autoHidden,
+    rows,
+    measureTick,
+    enableRowSelection,
+  ]);
+  // What TanStack draws: the person's choice minus what did not fit.
+  const drawnVisibility = useMemo<VisibilityState>(() => {
+    if (autoHidden.size === 0) return columnVisibility;
+    const drawn = { ...columnVisibility };
+    for (const field of autoHidden) drawn[field] = false;
+    return drawn;
+  }, [columnVisibility, autoHidden]);
+
   // Export wiring. Everything the export needs is read through this ref at
   // export time rather than captured at registration time, so a column toggle,
   // a new multifilter query, or a fresh fetcher identity all take effect
@@ -481,7 +566,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
     data: rows,
     columns: allColumns,
     state: {
-      columnVisibility,
+      columnVisibility: drawnVisibility,
       columnSizing,
       ...(enableRowSelection ? { rowSelection } : {}),
       sorting: sortingState,
@@ -851,13 +936,20 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
               <div className="ev-table-toolbar-section">
                 {toolbarRight}
                 {showColumnVisibility && (
-                  <ColumnVisibilityMenu table={tableInstance} label={labels.customizeColumns} />
+                  <ColumnVisibilityMenu
+                    table={tableInstance}
+                    label={labels.customizeColumns}
+                    chosen={columnVisibility}
+                    autoHidden={autoHidden}
+                    noRoom={labels.noRoom}
+                  />
                 )}
               </div>
             </div>
           )}
 
           <div
+            ref={scrollRef}
             className="easyvision-table-scroll"
             style={
               maxBodyHeight !== undefined
@@ -870,7 +962,10 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                 : undefined
             }
           >
-            <table className="ev-table" aria-label={ariaLabel}>
+            <table
+              className={fitByHiding ? 'ev-table ev-table-fit' : 'ev-table'}
+              aria-label={ariaLabel}
+            >
             <TableHeader
               className={
                 maxBodyHeight !== undefined ? 'ev-table-thead-sticky' : undefined
@@ -881,7 +976,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                   {hg.headers.map((header) => {
                     if (header.column.id === '_select' && enableRowSelection) {
                       return (
-                        <TableHead key={header.id} className="ev-table-th-checkbox">
+                        <TableHead key={header.id} className="ev-table-th-checkbox" data-field="_select">
                           <SelectAllControl
                             scope={selection.scope}
                             toggleable={selectAllScope === 'toggleable'}
@@ -905,6 +1000,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                       largeScreensOnly?: boolean;
                       width?: string;
                       resizable?: boolean;
+                      minWidth?: number;
                     };
                     // Resizable columns get a live width from TanStack; static
                     // `width` columns get the configured CSS value as-is.
@@ -913,10 +1009,15 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                         ? { width: header.getSize(), minWidth: header.getSize() }
                         : colMeta.width
                         ? { width: colMeta.width, minWidth: colMeta.width }
+                        : colMeta.minWidth
+                        ? { minWidth: colMeta.minWidth }
+                        : fitByHiding && pinned[header.column.id]
+                        ? { width: pinned[header.column.id] }
                         : undefined;
                     return (
                       <TableHead
                         key={header.id}
+                        data-field={header.column.id}
                         style={headerWidthStyle}
                         aria-sort={
                           header.column.getIsSorted() === 'asc'
@@ -926,7 +1027,12 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                             : undefined
                         }
                         className={
-                          colMeta.largeScreensOnly ? 'ev-table-large-only' : undefined
+                          [
+                            colMeta.largeScreensOnly ? 'ev-table-large-only' : '',
+                            colMeta.minWidth ? 'ev-table-wrap' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ') || undefined
                         }
                       >
                         {header.isPlaceholder ? null : sortable ? (
@@ -1031,6 +1137,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                           width?: string;
                           truncate?: boolean;
                           resizable?: boolean;
+                          minWidth?: number;
                         };
                         const cellWidthStyle: React.CSSProperties | undefined =
                           cellMeta.resizable
@@ -1065,6 +1172,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                             className={[
                               cellMeta.largeScreensOnly ? 'ev-table-large-only' : '',
                               cellMeta.truncate ? 'ev-table-cell-truncate' : '',
+                              cellMeta.minWidth ? 'ev-table-wrap' : '',
                             ].filter(Boolean).join(' ') || undefined}
                           >
                             {cellMeta.truncate ? (
@@ -1104,4 +1212,50 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
       </div>
     </NamespaceProvider>
   );
+}
+
+const NO_AUTO_HIDDEN: ReadonlySet<string> = new Set();
+/** A column the person switched on in the menu outranks any declared priority. */
+const ASKED_FOR = 1_000_000;
+
+function sameSet(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  if (a.size !== b.size) return false;
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
+}
+
+/**
+ * Keeps in `widths` the widest each column has painted and says whether one
+ * grew. Measured at NATURAL width: a table stretched to its container makes
+ * its columns add up to exactly the space available, so «nothing else fits»
+ * by construction and a hidden column never came back. `max-content`, not
+ * `auto`: at `auto` a table that does not fit squeezes its wrapping cells. The
+ * width pinned on a header is lifted to measure (unless the column declares
+ * one), or a column would never grow past the first page. Everything is
+ * restored before paint (called from a layout effect), so nothing flickers.
+ */
+function measureWidest(
+  container: HTMLElement,
+  declared: ReadonlySet<string>,
+  widths: Map<string, number>
+): boolean {
+  const table = container.querySelector<HTMLTableElement>('table');
+  if (!table) return false;
+  const stretched = table.style.width;
+  table.style.width = 'max-content';
+  let grew = false;
+  for (const th of table.querySelectorAll<HTMLElement>('th[data-field]')) {
+    const field = th.dataset.field;
+    if (!field) continue;
+    const fixed = th.style.width;
+    if (field !== '_select' && !declared.has(field)) th.style.width = '';
+    const width = th.offsetWidth;
+    th.style.width = fixed;
+    if (width > (widths.get(field) ?? 0)) {
+      widths.set(field, width);
+      grew = true;
+    }
+  }
+  table.style.width = stretched;
+  return grew;
 }

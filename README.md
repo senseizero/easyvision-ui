@@ -938,6 +938,31 @@ Use `sortable: true` on a single column to opt back in when your API does suppor
 { field: 'client.sector', header: 'Sector', sortable: true }
 ```
 
+#### Running out of width: scroll or hide (`columnFit`)
+
+By default a table wider than its container scrolls sideways (`columnFit="scroll"`). With `columnFit="hide"` it hides columns instead, and brings them back as it widens:
+
+- Columns go by `priority` (higher stays longer). Without one they drop right to left. The first column, a header-less one (a row's actions) and the selection column never drop.
+- A column the person switched on in the column menu outranks every declared priority.
+- A column with `minWidth` (px) wraps its text; the fit reserves that width for it instead of its one-line width. Every other cell stays on one line.
+- The widest each column has painted is pinned on its header, so columns do not jump between pages. A hidden column needs its width + 24px to come back (no flicker at the edge).
+- It is screen state only: the column menu keeps the column ticked and marks it `labels.noRoom` («(sin sitio)»), and neither the saved visibility nor the export sees the hiding.
+- Without a measurement (jsdom, `display: none`) nothing is ever hidden.
+
+```tsx
+<EasyVisionTable
+  id="alerts"
+  columnFit="hide"
+  columns={[
+    { field: 'title', header: 'Título', minWidth: 200 },
+    { field: 'publishedAt', header: 'Publicado', priority: 0 },
+    { field: 'score', header: 'Score', priority: -5 },
+    { type: 'ui', field: 'actions', header: '', cell: (row) => <RowMenu row={row} /> },
+  ]}
+  /* ... */
+/>
+```
+
 #### Column sizing, truncation, and resizing
 
 Three orthogonal column-level options control horizontal layout:
@@ -1224,6 +1249,7 @@ The toolbar row is hidden entirely when none of `toolbarLeft`, `toolbarRight`, o
 | `paginationMode` | `'local' \| 'api'` | `'local'` |
 | `orderingMode` | `'local' \| 'api'` | `'local'` |
 | `defaultSorting` | `'disabled' \| 'nonNested' \| 'all'` | `'nonNested'` |
+| `columnFit` | `'scroll' \| 'hide'` | `'scroll'` — see [Running out of width](#running-out-of-width-scroll-or-hide-columnfit) |
 | `data` | `T[]` | — for local mode |
 | `fetchData` | `(params) => Promise<{rows, totalCount}>` | — for api mode |
 | `loopback` | `CreateLoopbackTableFetcherOptions<T>` | — declarative LoopBack shortcut; auto-builds `fetchData` and forces `paginationMode`/`orderingMode` to `'api'` (see [API adapters: LoopBack](#api-adapters-loopback)) |

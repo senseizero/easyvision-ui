@@ -399,3 +399,18 @@
   height: 1rem;
   width: 1rem;
 }
+
+/* columnFit: 'hide' — the table fits its container instead of scrolling: no
+   natural-width floor, one line per cell, and only the columns that declare a
+   minWidth wrap (they take whatever width the others leave). */
+.ev-table.ev-table-fit {
+  min-width: 0;
+}
+.ev-table-fit th,
+.ev-table-fit td {
+  white-space: nowrap;
+}
+.ev-table-fit th.ev-table-wrap,
+.ev-table-fit td.ev-table-wrap {
+  white-space: normal;
+}

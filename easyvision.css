@@ -1509,3 +1509,9 @@
   line-height: 1rem;
   color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
 }
+
+.ev-cv-no-room {
+  margin-left: 0.25rem;
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
+  font-size: 0.75rem;
+}
