@@ -23,6 +23,8 @@ export interface EasyVisionSelectorProps<V extends string | number = string | nu
   /** Confirm-mode parity with bench-vision SimpleSelector — value isn't committed until Confirm. */
   confirmMode?: boolean;
   confirmLabel?: string;
+  /** The clear button's name (shown when not `mandatory`). Default 'Limpiar'. */
+  clearLabel?: string;
   searchable?: boolean;
   onChange?: (value: V | undefined) => void;
   className?: string;

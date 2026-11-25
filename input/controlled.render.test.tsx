@@ -115,3 +115,25 @@ describe('EasyVisionSelector, controlled', () => {
     expect(document.getElementById('type-trigger')!.textContent).toContain('Elige');
   });
 });
+
+describe('EasyVisionSelector, clear button', () => {
+  it("carries the host's name for it", async () => {
+    const onChange = vi.fn();
+    act(() =>
+      root.render(
+        <EasyVisionSelector
+          id="s"
+          value="a"
+          options={[{ value: 'a', label: 'A' }]}
+          clearLabel="Clear"
+          onChange={onChange}
+        />
+      )
+    );
+    await flush();
+    const clear = document.querySelector<HTMLButtonElement>('button[aria-label="Clear"]');
+    expect(clear).not.toBeNull();
+    act(() => clear!.click());
+    expect(onChange).toHaveBeenCalledWith(undefined);
+  });
+});

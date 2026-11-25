@@ -36,6 +36,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
   defaultValue,
   confirmMode = false,
   confirmLabel = 'Confirmar',
+  clearLabel = 'Limpiar',
   searchable = false,
   onChange,
   onStateChange,
@@ -192,7 +193,7 @@ export function EasyVisionSelector<V extends string | number = string | number>(
             type="button"
             onClick={() => (confirmMode ? setPending(undefined) : commit(undefined))}
             className="ev-selector-clear"
-            aria-label="Limpiar"
+            aria-label={clearLabel}
           >
             <X />
           </button>
