@@ -32,6 +32,10 @@ export { EasyVisionDelta } from './display/EasyVisionDelta';
 export type { EasyVisionDeltaProps } from './display/EasyVisionDelta';
 export { EasyVisionSparkline } from './display/EasyVisionSparkline';
 export type { EasyVisionSparklineProps } from './display/EasyVisionSparkline';
+export { EasyVisionDateChip } from './display/EasyVisionDateChip';
+export type { EasyVisionDateChipProps } from './display/EasyVisionDateChip';
+export { EasyVisionScoreCell } from './display/EasyVisionScoreCell';
+export type { EasyVisionScoreCellProps } from './display/EasyVisionScoreCell';
 export type { Tone } from './display/tone';
 export { easyVisionRegistry, getSlice } from './store/registry';
 

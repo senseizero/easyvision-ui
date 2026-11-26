@@ -65,3 +65,59 @@
   vertical-align: middle;
   overflow: visible;
 }
+
+.ev-date-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--ev-info, #2563EB);
+  border-radius: var(--ev-radius-badge, var(--ev-radius-sm, 0.25rem));
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
+  background: transparent;
+}
+.ev-date-chip[data-step='solid'] {
+  color: #fff;
+  background: var(--ev-info, #2563EB);
+}
+.ev-date-chip[data-step='light'] {
+  color: var(--ev-info, #2563EB);
+  background: var(--ev-info-soft, #DBEAFE);
+  border-color: transparent;
+}
+.ev-date-chip[data-step='grey'] {
+  background: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%))));
+  border-color: transparent;
+}
+.ev-date-chip[data-step='outline'] {
+  border-color: var(--ev-border, hsl(var(--border, 214 32% 91%)));
+}
+.ev-date-chip:not([data-step]) {
+  border-color: transparent;
+}
+
+.ev-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: calc(-1 * var(--ev-table-cell-py, 1rem)) calc(-1 * var(--ev-table-cell-px, 1rem));
+  padding: var(--ev-table-cell-py, 1rem) var(--ev-table-cell-px, 1rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  --ev-score-fg: var(--ev-neutral, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))));
+}
+.ev-score[data-tone='positive'] { --ev-score-fg: var(--ev-positive, #16A34A); background: var(--ev-positive-soft, #DCFCE7); }
+.ev-score[data-tone='negative'] { --ev-score-fg: var(--ev-negative, #DC2626); background: var(--ev-negative-soft, #FEE2E2); }
+.ev-score[data-tone='warn'] { --ev-score-fg: var(--ev-warn, #CA8A04); background: var(--ev-warn-soft, #FEF3C7); }
+.ev-score[data-tone='info'] { --ev-score-fg: var(--ev-info, #2563EB); background: var(--ev-info-soft, #DBEAFE); }
+.ev-score[data-tone='neutral'] { background: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%)))); }
+.ev-score-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ev-score-fg);
+}
