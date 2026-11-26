@@ -1,6 +1,10 @@
 # EasyVision
 
-A small, shadcn-backed component set for building filtered, paginated, sortable views with as little plumbing as possible. Each component owns its own state via an internal zustand registry — the user only supplies an `id`.
+A small component set for building filtered, paginated, sortable views with as little plumbing as possible. Each component owns its own state via an internal zustand registry — the user only supplies an `id`.
+
+```bash
+npm i @easyvision/easyvision-ui
+```
 
 ```tsx
 import {
@@ -8,8 +12,12 @@ import {
   EasyVisionSelector,
   EasyVisionMultifilter,
   EasyVisionTable,
-} from '@/components/easyvision';
+} from '@easyvision/easyvision-ui';
 ```
+
+**Self-contained.** The package imports its own CSS (`easyvision.css`, `EasyVisionTable.css`, plain `.ev-*` classes): the host needs no Tailwind and no extra stylesheet import. Everything it uses is a regular dependency, installed with it; only `react` and `react-dom` (18 or 19) are peers. Its look comes from the host's theme through CSS variables — see [Theming](#theming).
+
+**Versions.** 2.x builds its popovers, selects, menus, checkbox and combobox on [Base UI](https://base-ui.com) (`@base-ui/react`, plus `date-fns` 4 and `react-day-picker` 9). 1.x is the Radix-based line, kept on branch `1.x` for hosts still on Radix; its hotfixes publish under a non-`latest` dist-tag. A host that also uses Base UI should be on a compatible range (`^1.7`) so both share one copy.
 
 ---
 
@@ -31,6 +39,7 @@ import {
   - [Standalone usage (no table)](#standalone-usage-no-table)
   - [Nesting](#nesting)
   - [Snapshot shape](#snapshot-shape)
+  - [Saved filters ("Guardados")](#saved-filters-guardados)
 - [`EasyVisionTable`](#easyvisiontable)
   - [Choosing a data + filter strategy](#choosing-a-data--filter-strategy)
   - [Local vs API mode](#local-vs-api-mode)
@@ -45,12 +54,15 @@ import {
   - [Toolbar slots](#toolbar-slots)
 - [`EasyVisionExportButton`](#easyvisionexportbutton)
   - [What gets exported](#what-gets-exported)
+  - [CSV instead of Excel](#csv-instead-of-excel-formatcsv)
   - [Resolving table ids](#resolving-table-ids)
 - [Migration cookbook](#migration-cookbook)
 - [Integration recipes](#integration-recipes)
   - [API adapters: LoopBack](#api-adapters-loopback)
   - [Local mode filtering with the same DSL — `matchLoopbackWhere`](#local-mode-filtering-with-the-same-dsl--matchloopbackwhere)
+  - [API adapters: ingot (NML v3)](#api-adapters-ingot-nml-v3)
 - [Gotchas](#gotchas)
+  - [Theming](#theming)
 - [Escape hatch: direct registry access](#escape-hatch-direct-registry-access)
 
 ---
@@ -383,7 +395,12 @@ Pass `value` to drive it from outside (a form that pre-fills or resets): it show
 | `defaultValue` | `string \| number` | — | |
 | `confirmMode` | `boolean` | `false` | Renders a Confirm button; value isn't committed until pressed. |
 | `confirmLabel` | `string` | `'Confirmar'` | Label for the confirm button. |
+| `clearLabel` | `string` | `'Limpiar'` | Name of the clear button (shown when not `mandatory`). |
 | `searchable` | `boolean` | `false` | Switches to a Combobox with text search. |
+| `searchPlaceholder` | `string` | `'Buscar...'` | Search box placeholder in `searchable` mode. |
+| `noResultsLabel` | `string` | `'Sin resultados'` | What a `searchable` list says when nothing matches. |
+| `value` | `V \| null` | — | Controlled mode (see above); `null` = nothing picked. |
+| `triggerProps` | `{ id?, 'aria-*'? }` | — | Put on the trigger, for a `<label htmlFor>` and validation. |
 | `onChange` | `(value) => void` | — | Fires with the committed value. |
 | `disabled`, `className`, `persist`, `clearWhen`, `onStateChange` | as in Input | | |
 
@@ -1830,7 +1847,7 @@ Things that bit us during development and are easy to miss at integration time.
 
 ### Theming
 
-- **All colours come from shadcn semantic tokens.** Components rely on `--background`, `--foreground`, `--border`, `--muted`, `--card`, `--primary`, `--destructive`, etc. If your project doesn't define these (i.e. it isn't shadcn-themed), components will render with no styling.
+- **Colours come from shadcn semantic tokens.** Components read `--background`, `--foreground`, `--border`, `--muted`, `--card`, `--primary`, `--destructive`, etc. as HSL triplets (shadcn v3 style). A project that defines none of them gets readable built-in fallbacks (a neutral slate palette), not its own colours.
 - **`.dark` mode is automatic** if your project applies the `.dark` class on a parent. EasyVision uses no hardcoded colors.
 - **shadcn v4 / Tailwind 4 hosts** define those tokens as complete colours (`--primary: oklch(…)`), which is invalid inside the `hsl(var(--primary))` EasyVision paints with: the colours come out blank. Define the `--ev-*` twin of each token instead (same names with an `ev-` prefix, any CSS colour). An `--ev-*` variable, when present, always wins over its shadcn token, so it is also how a host gives EasyVision a palette different from its own:
 
