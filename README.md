@@ -1844,6 +1844,20 @@ Things that bit us during development and are easy to miss at integration time.
   ```
 
   Tokens: `background`, `foreground`, `card[-foreground]`, `popover[-foreground]`, `primary[-foreground]`, `secondary[-foreground]`, `muted[-foreground]`, `accent[-foreground]`, `destructive[-foreground]`, `border`, `input`, `ring`.
+- **Shape and density are tokens too**, each defaulting to the value it always had: `--ev-radius` (controls, menus, popovers), `--ev-radius-sm` (checkboxes, chips), `--ev-radius-card` (cards, table frame), `--ev-shadow-popover`, `--ev-shadow-card`, `--ev-table-font-size`, `--ev-table-header-height`, `--ev-table-cell-py`, `--ev-table-cell-px`, `--ev-table-header-background`, `--ev-table-stripe` (even body rows). Fonts are inherited.
+- **One theme for the whole site.** Point the `--ev-*` tokens at the host's own once, where the host's theme lives; then every theme the host switches to (a `[data-theme]` attribute, `.dark`…) restyles EasyVision with it, with no EasyVision-specific values:
+
+  ```css
+  :root, [data-theme] {
+    --ev-primary: var(--primary);
+    --ev-border: var(--border);
+    /* …one line per colour token… */
+    --ev-radius: var(--radius-md);
+    --ev-radius-card: var(--radius-lg);
+  }
+  ```
+
+  Declare the aliases on the same elements the themes are set on: a custom property resolves its `var()` where it is declared and inherits the result.
 
 ---
 
