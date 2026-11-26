@@ -1414,14 +1414,14 @@ A small speedometer (semicircle of four coloured segments and a needle) followed
 
 | prop | type | default | |
 |---|---|---|---|
-| `value` | `number \| null \| undefined` | — | Position between 0 and 1 (clamped). |
+| `value` | `number \| null \| undefined` | — | Position between 0 and 1 (clamped). The four segments are equal quarters, so map the host's scale onto them yourself if its cuts are not even. |
 | `label` | `ReactNode` | `–` | Text next to the dial, coloured by `tone`. |
 | `tone` | `Tone` | `'neutral'` | Colour of the label. |
 | `title` | `string` | — | Native tooltip. |
 | `size` | `number` | `40` | Width of the dial in px; the height is `size * 0.6`. |
 
 ```tsx
-<EasyVisionGauge value={3 / 4} label="Alto" tone="negative" title="Score: 3,0 / 4,0 · Alto" />
+<EasyVisionGauge value={0.62} label="Alto" tone="negative" title="Score: 3,0 / 4,0 · Alto" />
 ```
 
 ### `EasyVisionDateChip`

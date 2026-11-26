@@ -83,4 +83,15 @@ describe("EasyVisionGauge", () => {
     expect(svg.getAttribute("width")).toBe("80");
     expect(svg.getAttribute("height")).toBe("48");
   });
+  it("a value in each quarter points the needle into that segment", () => {
+    // Segment i spans angles (from the left, in degrees) 45*i .. 45*(i+1).
+    [0.125, 0.375, 0.625, 0.875].forEach((v, i) => {
+      const line = render(<EasyVisionGauge value={v} />).querySelector("line")!;
+      const dx = Number(line.getAttribute("x2")) - 20;
+      const dy = 22 - Number(line.getAttribute("y2"));
+      const fromLeft = 180 - (Math.atan2(dy, dx) * 180) / Math.PI;
+      expect(fromLeft).toBeGreaterThan(45 * i);
+      expect(fromLeft).toBeLessThan(45 * (i + 1));
+    });
+  });
 });
