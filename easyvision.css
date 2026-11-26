@@ -20,12 +20,20 @@
  *   --ev-radius            controls, menus, popovers (0.375rem)
  *   --ev-radius-sm         small items: checkboxes, chips (0.25rem)
  *   --ev-radius-card       cards and the table frame (--ev-radius)
+ *   --ev-radius-badge      badges (--ev-radius-sm)
  *   --ev-shadow-popover    popovers, selects, menus
  *   --ev-shadow-card       cards
  *   --ev-table-font-size   (0.875rem)
  *   --ev-table-header-height (3rem), --ev-table-cell-py / -px (1rem)
  *   --ev-table-header-background (transparent), --ev-table-stripe
  *                          (transparent: even rows of the body)
+ * Tone tokens (display components: badge, delta, score cell…), each a
+ * complete colour; `-soft` is the pale background of the same tone:
+ *   --ev-positive (#16A34A)  --ev-positive-soft (#DCFCE7)
+ *   --ev-negative (#DC2626)  --ev-negative-soft (#FEE2E2)
+ *   --ev-warn     (#CA8A04)  --ev-warn-soft     (#FEF3C7)
+ *   --ev-info     (#2563EB)  --ev-info-soft     (#DBEAFE)
+ *   --ev-neutral  (muted-foreground)  --ev-neutral-soft (muted)
  * Fonts are inherited from the host.
  *
  * A host with its own theme (shadcn v4 tokens, data-theme switches…) points

@@ -1,0 +1,50 @@
+/*
+ * Display components (badge, delta, sparkline, date chip, score cell).
+ * Tone colours read --ev-<tone> / --ev-<tone>-soft tokens with fallbacks.
+ */
+.ev-badge, .ev-badge[data-tone='neutral'] {
+  --ev-badge-fg: var(--ev-neutral, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))));
+  --ev-badge-bg: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%))));
+}
+.ev-badge[data-tone='positive'] {
+  --ev-badge-fg: var(--ev-positive, #16A34A);
+  --ev-badge-bg: var(--ev-positive-soft, #DCFCE7);
+}
+.ev-badge[data-tone='negative'] {
+  --ev-badge-fg: var(--ev-negative, #DC2626);
+  --ev-badge-bg: var(--ev-negative-soft, #FEE2E2);
+}
+.ev-badge[data-tone='warn'] {
+  --ev-badge-fg: var(--ev-warn, #CA8A04);
+  --ev-badge-bg: var(--ev-warn-soft, #FEF3C7);
+}
+.ev-badge[data-tone='info'] {
+  --ev-badge-fg: var(--ev-info, #2563EB);
+  --ev-badge-bg: var(--ev-info-soft, #DBEAFE);
+}
+.ev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--ev-badge-fg);
+  background: var(--ev-badge-bg);
+  border-radius: var(--ev-radius-badge, var(--ev-radius-sm, 0.25rem));
+}
+.ev-badge[data-variant='dot'] {
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+.ev-badge[data-variant='dot']::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ev-badge-fg);
+  flex: none;
+}

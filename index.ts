@@ -1,5 +1,6 @@
 import './easyvision.css';
 import './table/EasyVisionTable.css';
+import './display/display.css';
 
 export { EasyVisionInput } from './input/EasyVisionInput';
 export { EasyVisionSelector } from './selector/EasyVisionSelector';
@@ -25,6 +26,9 @@ export {
 export { buildCsv, exportCsv } from './export/buildCsv';
 export type { CsvDelimiter, ExportCsvOptions } from './export/buildCsv';
 export { toExportColumns } from './export/exportColumns';
+export { EasyVisionBadge } from './display/EasyVisionBadge';
+export type { EasyVisionBadgeProps } from './display/EasyVisionBadge';
+export type { Tone } from './display/tone';
 export { easyVisionRegistry, getSlice } from './store/registry';
 
 export type { EasyVisionInputProps } from './types/input.types';
