@@ -31,7 +31,8 @@ const inner = () => [...document.querySelectorAll('.ev-table-cell-truncate-inner
 describe('column tooltip', () => {
   it('puts tooltip(row) on the truncating wrapper', () => {
     draw([{ field: 'title', header: 'T', truncate: true, tooltip: (r) => `Full: ${r.title}` }]);
-    expect(inner()[0].getAttribute('title')).toBe('Full: A very long title');
+    expect(inner()[0].textContent).toBe('A very long title');
+    expect(inner()[0].getAttribute('aria-description')).toBe('Full: A very long title');
   });
   it('without tooltip, a non-string cell value has no title', () => {
     draw([{ field: 'title', header: 'T', truncate: true, cell: (r) => <b>{r.title}</b>, type: 'ui' }]);
@@ -42,5 +43,16 @@ describe('column tooltip', () => {
       { field: 'title', header: 'T', truncate: true, cell: (r) => <b>{r.title}</b>, tooltip: () => undefined },
     ]);
     expect(inner()[0].hasAttribute('title')).toBe(false);
+  });
+});
+
+describe('column tooltip as a styled tooltip', () => {
+  it('shows the full text on focus and drops the native title', async () => {
+    draw([{ field: 'title', header: 'T', truncate: true, tooltip: (r) => `Full: ${r.title}` }]);
+    expect(inner()[0].hasAttribute('title')).toBe(false);
+    expect(inner()[0].textContent).toBe('A very long title');
+    act(() => (inner()[0] as HTMLElement).focus());
+    await act(() => new Promise<void>((r) => setTimeout(r, 50)));
+    expect(document.querySelector('.ev-tooltip-content')?.textContent).toBe('Full: A very long title');
   });
 });

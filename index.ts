@@ -38,6 +38,8 @@ export { EasyVisionDateChip } from './display/EasyVisionDateChip';
 export type { EasyVisionDateChipProps } from './display/EasyVisionDateChip';
 export { EasyVisionScoreCell } from './display/EasyVisionScoreCell';
 export type { EasyVisionScoreCellProps } from './display/EasyVisionScoreCell';
+export { EasyVisionHint } from './display/EasyVisionHint';
+export type { EasyVisionHintProps } from './display/EasyVisionHint';
 export type { Tone } from './display/tone';
 export { easyVisionRegistry, getSlice } from './store/registry';
 

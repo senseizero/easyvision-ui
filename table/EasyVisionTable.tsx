@@ -20,6 +20,7 @@ import {
 import { Checkbox } from '../ui/checkbox';
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { useEasyVisionSlice } from '../store/useEasyVisionSlice';
 import { NamespaceProvider } from '../store/NamespaceContext';
 import { adaptColumns, shouldDisableSorting, type CellCache } from './ColumnDefAdapter';
@@ -1189,7 +1190,26 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                               cellMeta.minWidth ? 'ev-table-wrap' : '',
                             ].filter(Boolean).join(' ') || undefined}
                           >
-                            {cellMeta.truncate ? (
+                            {cellMeta.truncate && cellMeta.tooltip ? (
+                              titleAttr ? (
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    delay={300}
+                                    className="ev-table-cell-truncate-inner"
+                                    tabIndex={0}
+                                    aria-description={titleAttr}
+                                    render={<div />}
+                                  >
+                                    {rendered}
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" style={{ maxWidth: 420 }}>
+                                    {titleAttr}
+                                  </TooltipContent>
+                                </Tooltip>
+                              ) : (
+                                <div className="ev-table-cell-truncate-inner">{rendered}</div>
+                              )
+                            ) : cellMeta.truncate ? (
                               <div
                                 className="ev-table-cell-truncate-inner"
                                 title={titleAttr}

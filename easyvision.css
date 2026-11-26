@@ -52,6 +52,7 @@
  *   .ev-input           Bare input primitive
  *   .ev-checkbox        Checkbox primitive
  *   .ev-popover-*       Popover primitive
+ *   .ev-tooltip-*, .ev-hint  Tooltip primitive and EasyVisionHint
  *   .ev-select-*        Select primitive
  *   .ev-dropdown-*      DropdownMenu primitive
  *   .ev-cmd-*           Command palette primitive
@@ -308,6 +309,7 @@
   font-weight: 500;
 }
 .ev-popover-content,
+.ev-tooltip-content,
 .ev-select-content,
 .ev-dropdown-content,
 .ev-dropdown-sub-content {
@@ -328,6 +330,45 @@
 }
 .ev-popover-content[data-closed] {
   animation: ev-fade-out 100ms ease-in, ev-zoom-out 100ms ease-in;
+}
+
+/* ---------- Tooltip (and the EasyVisionHint ⓘ) ---------- */
+.ev-tooltip-content {
+  padding: 0.625rem 0.75rem;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ev-tooltip-content[data-open] {
+  animation: ev-fade-in 120ms ease-out, ev-zoom-in 120ms ease-out;
+}
+.ev-tooltip-content[data-closed] {
+  animation: ev-fade-out 100ms ease-in, ev-zoom-out 100ms ease-in;
+}
+.ev-tooltip-content b {
+  display: block;
+  margin-bottom: 2px;
+}
+.ev-hint {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%)));
+  cursor: help;
+}
+.ev-hint:hover,
+.ev-hint:focus-visible,
+.ev-hint[data-popup-open] {
+  color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%)));
+}
+.ev-hint:focus-visible {
+  outline: 2px solid var(--ev-ring, hsl(var(--ring, 215 20% 65%)));
+  outline-offset: 2px;
+  border-radius: var(--ev-radius-sm, 0.25rem);
 }
 
 /* ---------- Select ---------- */

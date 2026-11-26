@@ -58,6 +58,7 @@ import {
   - [`EasyVisionSparkline`](#easyvisionsparkline)
   - [`EasyVisionGauge`](#easyvisiongauge)
   - [`EasyVisionDateChip`](#easyvisiondatechip)
+  - [`EasyVisionHint`](#easyvisionhint)
   - [`EasyVisionScoreCell`](#easyvisionscorecell)
 - [`EasyVisionExportButton`](#easyvisionexportbutton)
   - [What gets exported](#what-gets-exported)
@@ -868,7 +869,7 @@ type DataColumn<T> = {
   width?: number | string;
   /** Truncate cell content with ellipsis when it overflows the column width. */
   truncate?: boolean;
-  /** Native tooltip of a `truncate` cell, from the row (e.g. the full title). */
+  /** Tooltip of a `truncate` cell, from the row (e.g. the full title). */
   tooltip?: (row: T) => string | undefined;
   /** Allow the user to drag the right edge of the header to resize this column. */
   resizable?: boolean;
@@ -1019,7 +1020,7 @@ Four column-level options control horizontal layout:
 |---|---|---|
 | `width` | `number \| string` | Initial width. Number → px, string → any CSS length (`'20%'`, `'12rem'`, `'min(280px, 30%)'`). When omitted, the column auto-sizes to its content. |
 | `truncate` | `boolean` | Single-line cell content; overflow becomes an ellipsis. Combine with `defaultCell(content, title)` to expose the full text as a native tooltip on hover. |
-| `tooltip` | `(row) => string \| undefined` | The native tooltip (`title`) of a `truncate` column's cell, computed from the row: the full text of a clamped title, or any summary. Replaces the default title; returning `undefined` shows none. Works with custom `cell` renderers too, unlike the automatic title. Has no effect without `truncate`. |
+| `tooltip` | `(row) => string \| undefined` | The tooltip of a `truncate` column's cell, computed from the row: the full text of a clamped title, or any summary. Shown in a styled popup (same look as [`EasyVisionHint`](#easyvisionhint)) on hover and keyboard focus (the cell becomes focusable), and also set as the cell's `aria-description`. Replaces the default native title; returning `undefined` shows none. Works with custom `cell` renderers too, unlike the automatic title. Has no effect without `truncate`. |
 | `resizable` | `boolean` | Renders a drag handle on the right edge of the header. The user can drag it to resize the column live; `width` becomes the initial size. The handle has a subtle idle line that lights up on hover/drag and a 12px-wide invisible hit area for easy grabbing. |
 
 ```tsx
@@ -1029,7 +1030,7 @@ Four column-level options control horizontal layout:
   width: 280,
   truncate: true,
   resizable: true,
-  tooltip: (row) => row.title, // full text on hover, whatever `cell` renders
+  tooltip: (row) => row.title, // full text in a popup on hover, whatever `cell` renders
 }
 ```
 
@@ -1357,7 +1358,7 @@ interface TableLabels {
 
 ## Display components
 
-Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. Badge, delta, gauge and date chip are `white-space: nowrap` (the score cell and the sparkline are not), so none of them needs `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
+Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. Badge, delta, gauge and date chip are `white-space: nowrap` (the score cell and the sparkline are not), so none of them needs `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option, or put an [`EasyVisionHint`](#easyvisionhint) next to it.
 
 ### `EasyVisionBadge`
 
@@ -1439,6 +1440,22 @@ A date whose emphasis fades with age: `data-step` is `solid` (younger than `step
 ```tsx
 <EasyVisionDateChip date={row.lastSeen} />
 <EasyVisionDateChip date={row.lastSeen} format={(d) => d.toLocaleDateString('es-ES')} />
+```
+
+### `EasyVisionHint`
+
+A small ⓘ icon that opens a popup (bold title line plus body) on hover and on keyboard focus, and closes on Escape or when the pointer or focus leaves. The popup is portalled (so a clipped table cell does not cut it), uses `white-space: pre-wrap` (line breaks in the body are kept), 12px text, and reads `--ev-popover`, `--ev-popover-foreground`, `--ev-border`, `--ev-radius`, `--ev-shadow-popover`, `--ev-muted-foreground` (icon) and `--ev-foreground` (icon on hover/focus). The trigger is a `<button type="button">`; clicking it does not reach a parent `onClick` (e.g. the row's).
+
+| prop | type | default | |
+|---|---|---|---|
+| `label` | `string` | — | Required. Accessible name of the trigger (`aria-label`). |
+| `children` | `ReactNode` | — | Body of the popup. |
+| `title` | `ReactNode` | — | Bold first line of the popup. |
+| `side` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Where the popup opens (flips when there is no room). |
+| `maxWidth` | `number` | `420` | Widest the popup grows, in px. |
+
+```tsx
+<EasyVisionHint label="Summary" title="Summary">{row.summary}</EasyVisionHint>
 ```
 
 ### `EasyVisionScoreCell`
