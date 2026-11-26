@@ -21,6 +21,11 @@ afterEach(() => {
 const trigger = () => host.querySelector('button') as HTMLButtonElement;
 const popup = () => document.querySelector('.ev-tooltip-content');
 const wait = (ms: number) => act(() => new Promise<void>((r) => setTimeout(r, ms)));
+// Polls instead of sleeping a fixed time: resolves as soon as the check holds.
+async function until(check: () => unknown, ms = 1500) {
+  for (let t = 0; t < ms && !check(); t += 10) await wait(10);
+  expect(check()).toBeTruthy();
+}
 
 describe('EasyVisionHint', () => {
   it('the trigger is a button named by label', () => {
@@ -57,7 +62,7 @@ describe('EasyVisionHint', () => {
       for (const type of ['pointerover', 'pointerenter', 'mouseover', 'mouseenter', 'pointermove', 'mousemove'])
         trigger().dispatchEvent(new MouseEvent(type, { bubbles: type !== 'pointerenter' && type !== 'mouseenter' }));
     });
-    await wait(400);
+    await until(popup);
     expect(popup()?.textContent).toContain('body text');
   });
 
