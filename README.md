@@ -1356,7 +1356,7 @@ interface TableLabels {
 
 ## Display components
 
-Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. They render a short, single-line (`white-space: nowrap`) value, so they need no `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
+Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. Badge, delta and date chip are `white-space: nowrap` (the score cell and the sparkline are not), so none of them needs `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
 
 ### `EasyVisionBadge`
 
