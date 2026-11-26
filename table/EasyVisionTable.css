@@ -204,6 +204,14 @@
   padding-right: 0;
 }
 
+/* Column `align`: header and cells together; the sort button is inline-flex, so
+   it follows its th's text-align but needs its own justification. */
+.ev-table .ev-align-left { text-align: left; }
+.ev-table .ev-align-center { text-align: center; }
+.ev-table .ev-align-right { text-align: right; }
+.ev-table th.ev-align-center .ev-table-sort-btn { justify-content: center; }
+.ev-table th.ev-align-right .ev-table-sort-btn { justify-content: flex-end; }
+
 /* Large-screens-only column (matches Tailwind's lg breakpoint = 1024px) */
 @media (max-width: 1023.98px) {
   .ev-table .ev-table-large-only {

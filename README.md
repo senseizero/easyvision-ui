@@ -867,6 +867,8 @@ type DataColumn<T> = {
   largeScreensOnly?: boolean;
   /** Initial column width. Number = px; string = any CSS length (e.g. '20%', '12rem'). */
   width?: number | string;
+  /** Alignment of the header and the cells together. Default `'left'`. A score or gauge cell is centred anyway. */
+  align?: 'left' | 'center' | 'right';
   /** Truncate cell content with ellipsis when it overflows the column width. */
   truncate?: boolean;
   /** Tooltip of a `truncate` cell, from the row (e.g. the full title). */
@@ -892,6 +894,8 @@ type UiColumn<T> = {
   initiallyHidden?: boolean;
   largeScreensOnly?: boolean;
   width?: number | string;
+  /** See data-column docs. */
+  align?: 'left' | 'center' | 'right';
   truncate?: boolean;
   tooltip?: (row: T) => string | undefined;
   resizable?: boolean;
@@ -1019,6 +1023,7 @@ Four column-level options control horizontal layout:
 | option | type | effect |
 |---|---|---|
 | `width` | `number \| string` | Initial width. Number → px, string → any CSS length (`'20%'`, `'12rem'`, `'min(280px, 30%)'`). When omitted, the column auto-sizes to its content. |
+| `align` | `'left' \| 'center' \| 'right'` | Aligns the header (and its sort button) and the cells of the column together. Default `'left'`. A cell holding an `EasyVisionScoreCell` or `EasyVisionGauge` is centred without it; `align` overrides that. |
 | `truncate` | `boolean` | Single-line cell content; overflow becomes an ellipsis. Combine with `defaultCell(content, title)` to expose the full text as a native tooltip on hover. |
 | `tooltip` | `(row) => string \| undefined` | The tooltip of a `truncate` column's cell, computed from the row: the full text of a clamped title, or any summary. Shown in a styled popup (same look as [`EasyVisionHint`](#easyvisionhint)) on hover and keyboard focus. A cell whose content has no focusable element of its own becomes one tab stop and carries the text as `aria-description`; when the content has a link or button, that element opens the tooltip on focus and the cell adds neither (describe the link yourself). A hint ([`EasyVisionHint`](#easyvisionhint)) inside the cell shows alone: the cell's tooltip waits while it is hovered or focused. Replaces the default native title; returning `undefined` shows none. Works with custom `cell` renderers too, unlike the automatic title. Has no effect without `truncate`. |
 | `resizable` | `boolean` | Renders a drag handle on the right edge of the header. The user can drag it to resize the column live; `width` becomes the initial size. The handle has a subtle idle line that lights up on hover/drag and a 12px-wide invisible hit area for easy grabbing. |
@@ -1411,7 +1416,7 @@ A tiny inline SVG line with a dot on the last point. Non-finite values are skipp
 
 ### `EasyVisionGauge`
 
-A small speedometer (semicircle of four coloured segments and a needle) followed by a label, for levels such as risk. The needle points left at 0 and right at 1; `null`, `undefined` or a non-finite value draws no needle and the label falls back to `–`. The label takes the tone colour; the SVG is `aria-hidden`, so the label is the accessible text. Reads `--ev-gauge-1`..`--ev-gauge-4` (segments, left to right; fallbacks `#16a34a`, `#EAB308`, `#dc2626`, `#991b1b`), `--ev-<tone>` and `--ev-foreground` (needle).
+A small speedometer (semicircle of four coloured segments and a needle) followed by a label, for levels such as risk. The needle points left at 0 and right at 1; `null`, `undefined` or a non-finite value draws no needle and the label falls back to `–`. In a table cell (`<td>`) it is centred (set the column's `align` to change that). The label takes the tone colour; the SVG is `aria-hidden`, so the label is the accessible text. Reads `--ev-gauge-1`..`--ev-gauge-4` (segments, left to right; fallbacks `#16a34a`, `#EAB308`, `#dc2626`, `#991b1b`), `--ev-<tone>` and `--ev-foreground` (needle).
 
 | prop | type | default | |
 |---|---|---|---|
@@ -1460,7 +1465,7 @@ A small ⓘ icon that opens a popup (bold title line plus body) on hover and on 
 
 ### `EasyVisionScoreCell`
 
-A 0..1 value as a percentage, tinted by band. Inside a table cell (`<td>`, any table, not only `EasyVisionTable`) the **cell itself** takes the tint, edge to edge whatever the row's height or padding (via `td:has(.ev-score[data-tone])`); outside a table it renders as a tinted pill. A missing value renders `–`. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-badge`.
+A 0..1 value as a percentage, tinted by band. Inside a table cell (`<td>`, any table, not only `EasyVisionTable`) the **cell itself** takes the tint, edge to edge whatever the row's height or padding (via `td:has(.ev-score[data-tone])`); outside a table it renders as a tinted pill. Its content is centred in the cell (`text-align: center` on `td:has(.ev-score)`); set the column's `align` to change that. A missing value renders `–`. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-badge`.
 
 | prop | type | default | |
 |---|---|---|---|

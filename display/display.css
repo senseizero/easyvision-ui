@@ -144,6 +144,9 @@ td:has(.ev-score[data-tone='negative']) { background: var(--ev-negative-soft, #F
 td:has(.ev-score[data-tone='warn']) { background: var(--ev-warn-soft, #FEF3C7); }
 td:has(.ev-score[data-tone='info']) { background: var(--ev-info-soft, #DBEAFE); }
 td:has(.ev-score[data-tone='neutral']) { background: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%)))); }
+/* A score or a gauge sits in the middle of its cell, so no odd space is left at
+   one side. A column's `align` still wins (its class is more specific). */
+td:has(.ev-score), td:has(.ev-gauge) { text-align: center; }
 .ev-score-dot {
   width: 8px;
   height: 8px;

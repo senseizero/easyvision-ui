@@ -87,6 +87,7 @@ export function adaptColumns<T extends RowData>(
       truncate: !!c.truncate,
       resizable: !!c.resizable,
       minWidth: c.minWidth,
+      align: c.align,
       tooltip: c.tooltip,
     };
     const isUi = c.type === 'ui';

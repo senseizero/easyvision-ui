@@ -48,6 +48,11 @@ export type EasyVisionColumn<T> =
        * nested fields → disabled (because most APIs don't support nested sort).
        */
       sortable?: boolean;
+      /**
+       * Horizontal alignment of the header and the cells of this column
+       * together. Default `'left'`. A score or gauge cell is centred anyway.
+       */
+      align?: 'left' | 'center' | 'right';
       initiallyHidden?: boolean;
       largeScreensOnly?: boolean;
       /**
@@ -128,6 +133,11 @@ export type EasyVisionColumn<T> =
       field: string;
       header: string | ReactNode | ((props: unknown) => ReactNode);
       cell: (item: T) => ReactNode;
+      /**
+       * Horizontal alignment of the header and the cells of this column
+       * together. Default `'left'`. A score or gauge cell is centred anyway.
+       */
+      align?: 'left' | 'center' | 'right';
       initiallyHidden?: boolean;
       largeScreensOnly?: boolean;
       /** See data-column docs. */

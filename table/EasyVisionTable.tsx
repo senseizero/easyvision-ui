@@ -82,6 +82,10 @@ function isFromWithinControl(e: React.MouseEvent<HTMLElement>): boolean {
   return !!control && e.currentTarget.contains(control) && control !== e.currentTarget;
 }
 
+// Unset adds nothing (stylesheet default, and a score cell centres itself); an
+// explicit value always gets its class so it can override that.
+const alignClass = (align?: 'left' | 'center' | 'right') => (align ? `ev-align-${align}` : '');
+
 export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T>) {
   const {
     id,
@@ -1012,6 +1016,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                       width?: string;
                       resizable?: boolean;
                       minWidth?: number;
+                      align?: 'left' | 'center' | 'right';
                     };
                     // Resizable columns get a live width from TanStack; static
                     // `width` columns get the configured CSS value as-is.
@@ -1041,6 +1046,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                           [
                             colMeta.largeScreensOnly ? 'ev-table-large-only' : '',
                             colMeta.minWidth ? 'ev-table-wrap' : '',
+                            alignClass(colMeta.align),
                           ]
                             .filter(Boolean)
                             .join(' ') || undefined
@@ -1150,6 +1156,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                           truncate?: boolean;
                           resizable?: boolean;
                           minWidth?: number;
+                          align?: 'left' | 'center' | 'right';
                           tooltip?: (row: T) => string | undefined;
                         };
                         const cellWidthStyle: React.CSSProperties | undefined =
@@ -1188,6 +1195,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                               cellMeta.largeScreensOnly ? 'ev-table-large-only' : '',
                               cellMeta.truncate ? 'ev-table-cell-truncate' : '',
                               cellMeta.minWidth ? 'ev-table-wrap' : '',
+                              alignClass(cellMeta.align),
                             ].filter(Boolean).join(' ') || undefined}
                           >
                             {cellMeta.truncate && cellMeta.tooltip ? (
