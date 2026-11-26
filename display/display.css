@@ -48,3 +48,20 @@
   background: var(--ev-badge-fg);
   flex: none;
 }
+
+.ev-delta {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--ev-neutral, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))));
+}
+.ev-delta[data-tone='positive'] { color: var(--ev-positive, #16A34A); }
+.ev-delta[data-tone='negative'] { color: var(--ev-negative, #DC2626); }
+.ev-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: visible;
+}

@@ -28,6 +28,10 @@ export type { CsvDelimiter, ExportCsvOptions } from './export/buildCsv';
 export { toExportColumns } from './export/exportColumns';
 export { EasyVisionBadge } from './display/EasyVisionBadge';
 export type { EasyVisionBadgeProps } from './display/EasyVisionBadge';
+export { EasyVisionDelta } from './display/EasyVisionDelta';
+export type { EasyVisionDeltaProps } from './display/EasyVisionDelta';
+export { EasyVisionSparkline } from './display/EasyVisionSparkline';
+export type { EasyVisionSparklineProps } from './display/EasyVisionSparkline';
 export type { Tone } from './display/tone';
 export { easyVisionRegistry, getSlice } from './store/registry';
 
