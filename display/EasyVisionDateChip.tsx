@@ -1,4 +1,4 @@
-import { format as formatDate, isValid, parseISO } from 'date-fns';
+import { format as formatDate, isValid, parseISO } from "date-fns";
 
 export interface EasyVisionDateChipProps {
   date: Date | string | null | undefined;
@@ -15,16 +15,26 @@ export function EasyVisionDateChip({
   date,
   now,
   steps = DEFAULT_STEPS,
-  format = (d) => formatDate(d, 'dd/MM/yy'),
+  format = (d) => formatDate(d, "dd/MM/yy"),
   title,
 }: EasyVisionDateChipProps) {
-  const parsed = typeof date === 'string' ? parseISO(date) : date;
+  const parsed = typeof date === "string" ? parseISO(date) : date;
   if (!parsed || !isValid(parsed)) {
-    return <span className="ev-date-chip">–</span>;
+    return (
+      <span className="ev-date-chip" title={title}>
+        –
+      </span>
+    );
   }
   const age = (now ?? new Date()).getTime() - parsed.getTime();
   const step =
-    age < steps.solid ? 'solid' : age <= steps.light ? 'light' : age <= steps.grey ? 'grey' : 'outline';
+    age < steps.solid
+      ? "solid"
+      : age <= steps.light
+        ? "light"
+        : age <= steps.grey
+          ? "grey"
+          : "outline";
   return (
     <span className="ev-date-chip" data-step={step} title={title}>
       {format(parsed)}

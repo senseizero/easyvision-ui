@@ -1,4 +1,12 @@
-import type { Tone } from './tone';
+import type { Tone } from "./tone";
+
+const FALLBACK: Record<Tone, string> = {
+  positive: "#16A34A",
+  negative: "#DC2626",
+  warn: "#CA8A04",
+  info: "#2563EB",
+  neutral: "currentColor",
+};
 
 export interface EasyVisionSparklineProps {
   values: number[];
@@ -20,26 +28,31 @@ export function EasyVisionSparkline({
   const max = Math.max(...finite);
   const span = max - min;
   const pts = finite.map((v, i) => {
-    const x = finite.length === 1 ? width / 2 : 1 + (i * (width - 2)) / (finite.length - 1);
-    const y = span === 0 ? height / 2 : 1 + (height - 2) * (1 - (v - min) / span);
+    const x =
+      finite.length === 1
+        ? width / 2
+        : 1 + (i * (width - 2)) / (finite.length - 1);
+    const y =
+      span === 0 ? height / 2 : 1 + (height - 2) * (1 - (v - min) / span);
     return [Number(x.toFixed(2)), Number(y.toFixed(2))] as const;
   });
   const last = pts[pts.length - 1];
-  const stroke = `var(--ev-${tone ?? 'neutral'})`;
+  const t = tone ?? "neutral";
+  const stroke = `var(--ev-${t}, ${FALLBACK[t]})`;
   return (
     <svg
       className="ev-sparkline"
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      role={ariaLabel ? 'img' : undefined}
+      role={ariaLabel ? "img" : undefined}
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
     >
       {pts.length > 0 && (
         <>
           <polyline
-            points={pts.map((p) => p.join(',')).join(' ')}
+            points={pts.map((p) => p.join(",")).join(" ")}
             fill="none"
             stroke={stroke}
             strokeWidth={1.5}
