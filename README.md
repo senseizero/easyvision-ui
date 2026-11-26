@@ -1460,7 +1460,7 @@ A small ⓘ icon that opens a popup (bold title line plus body) on hover and on 
 
 ### `EasyVisionScoreCell`
 
-A 0..1 value as a percentage, tinted by band; it fills the whole table cell. A missing value renders `–`. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-table-cell-py/-px`.
+A 0..1 value as a percentage, tinted by band. Inside a table cell (`<td>`, any table, not only `EasyVisionTable`) the **cell itself** takes the tint, edge to edge whatever the row's height or padding (via `td:has(.ev-score[data-tone])`); outside a table it renders as a tinted pill. A missing value renders `–`. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-badge`.
 
 | prop | type | default | |
 |---|---|---|---|

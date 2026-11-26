@@ -117,20 +117,33 @@
 }
 
 .ev-score {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: calc(-1 * var(--ev-table-cell-py, 1rem)) calc(-1 * var(--ev-table-cell-px, 1rem));
-  padding: var(--ev-table-cell-py, 1rem) var(--ev-table-cell-px, 1rem);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   --ev-score-fg: var(--ev-neutral, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))));
 }
-.ev-score[data-tone='positive'] { --ev-score-fg: var(--ev-positive, #16A34A); background: var(--ev-positive-soft, #DCFCE7); }
-.ev-score[data-tone='negative'] { --ev-score-fg: var(--ev-negative, #DC2626); background: var(--ev-negative-soft, #FEE2E2); }
-.ev-score[data-tone='warn'] { --ev-score-fg: var(--ev-warn, #CA8A04); background: var(--ev-warn-soft, #FEF3C7); }
-.ev-score[data-tone='info'] { --ev-score-fg: var(--ev-info, #2563EB); background: var(--ev-info-soft, #DBEAFE); }
-.ev-score[data-tone='neutral'] { background: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%)))); }
+.ev-score[data-tone='positive'] { --ev-score-fg: var(--ev-positive, #16A34A); --ev-score-bg: var(--ev-positive-soft, #DCFCE7); }
+.ev-score[data-tone='negative'] { --ev-score-fg: var(--ev-negative, #DC2626); --ev-score-bg: var(--ev-negative-soft, #FEE2E2); }
+.ev-score[data-tone='warn'] { --ev-score-fg: var(--ev-warn, #CA8A04); --ev-score-bg: var(--ev-warn-soft, #FEF3C7); }
+.ev-score[data-tone='info'] { --ev-score-fg: var(--ev-info, #2563EB); --ev-score-bg: var(--ev-info-soft, #DBEAFE); }
+.ev-score[data-tone='neutral'] { --ev-score-bg: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%)))); }
+/* Outside a table cell the tint is the element's own pill. */
+.ev-score[data-tone] {
+  padding: 2px 8px;
+  border-radius: var(--ev-radius-badge, var(--ev-radius-sm, 0.25rem));
+  background: var(--ev-score-bg);
+}
+/* In a table cell the whole cell is tinted, edge to edge, whatever the row's
+   height or the table's padding: the cell itself takes the colour (a child
+   can't know how tall the row grew), and the score drops its pill. */
+td .ev-score[data-tone] { padding: 0; border-radius: 0; background: none; }
+td:has(.ev-score[data-tone='positive']) { background: var(--ev-positive-soft, #DCFCE7); }
+td:has(.ev-score[data-tone='negative']) { background: var(--ev-negative-soft, #FEE2E2); }
+td:has(.ev-score[data-tone='warn']) { background: var(--ev-warn-soft, #FEF3C7); }
+td:has(.ev-score[data-tone='info']) { background: var(--ev-info-soft, #DBEAFE); }
+td:has(.ev-score[data-tone='neutral']) { background: var(--ev-neutral-soft, var(--ev-muted, hsl(var(--muted, 210 40% 96%)))); }
 .ev-score-dot {
   width: 8px;
   height: 8px;
