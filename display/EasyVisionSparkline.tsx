@@ -1,11 +1,11 @@
-import type { Tone } from "./tone";
+import type { Tone } from './tone';
 
 const FALLBACK: Record<Tone, string> = {
-  positive: "#16A34A",
-  negative: "#DC2626",
-  warn: "#CA8A04",
-  info: "#2563EB",
-  neutral: "currentColor",
+  positive: '#16A34A',
+  negative: '#DC2626',
+  warn: '#CA8A04',
+  info: '#2563EB',
+  neutral: 'currentColor',
 };
 
 export interface EasyVisionSparklineProps {
@@ -37,7 +37,7 @@ export function EasyVisionSparkline({
     return [Number(x.toFixed(2)), Number(y.toFixed(2))] as const;
   });
   const last = pts[pts.length - 1];
-  const t = tone ?? "neutral";
+  const t = tone ?? 'neutral';
   const stroke = `var(--ev-${t}, ${FALLBACK[t]})`;
   return (
     <svg
@@ -45,14 +45,14 @@ export function EasyVisionSparkline({
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      role={ariaLabel ? "img" : undefined}
+      role={ariaLabel ? 'img' : undefined}
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
     >
       {pts.length > 0 && (
         <>
           <polyline
-            points={pts.map((p) => p.join(",")).join(" ")}
+            points={pts.map((p) => p.join(',')).join(' ')}
             fill="none"
             stroke={stroke}
             strokeWidth={1.5}

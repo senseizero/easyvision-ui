@@ -4,7 +4,9 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EasyVisionBadge } from './EasyVisionBadge';
 
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 let host: HTMLDivElement;
 let root: Root;
@@ -30,7 +32,12 @@ describe('EasyVisionBadge', () => {
   it('applies tone, variant and title', () => {
     act(() =>
       root.render(
-        <EasyVisionBadge tone="negative" variant="dot" title="Riesgo" className="x">
+        <EasyVisionBadge
+          tone="negative"
+          variant="dot"
+          title="Riesgo"
+          className="x"
+        >
           Mala
         </EasyVisionBadge>,
       ),
