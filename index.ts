@@ -32,6 +32,8 @@ export { EasyVisionDelta } from './display/EasyVisionDelta';
 export type { EasyVisionDeltaProps } from './display/EasyVisionDelta';
 export { EasyVisionSparkline } from './display/EasyVisionSparkline';
 export type { EasyVisionSparklineProps } from './display/EasyVisionSparkline';
+export { EasyVisionGauge } from './display/EasyVisionGauge';
+export type { EasyVisionGaugeProps } from './display/EasyVisionGauge';
 export { EasyVisionDateChip } from './display/EasyVisionDateChip';
 export type { EasyVisionDateChipProps } from './display/EasyVisionDateChip';
 export { EasyVisionScoreCell } from './display/EasyVisionScoreCell';

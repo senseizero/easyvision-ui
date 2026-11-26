@@ -1,5 +1,5 @@
 /*
- * Display components (badge, delta, sparkline, date chip, score cell).
+ * Display components (badge, delta, sparkline, gauge, date chip, score cell).
  * Tone colours read --ev-<tone> / --ev-<tone>-soft tokens with fallbacks.
  */
 .ev-badge, .ev-badge[data-tone='neutral'] {
@@ -65,6 +65,23 @@
   vertical-align: middle;
   overflow: visible;
 }
+
+.ev-gauge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  color: var(--ev-neutral, var(--ev-muted-foreground, hsl(var(--muted-foreground, 215 16% 47%))));
+}
+.ev-gauge[data-tone='positive'] { color: var(--ev-positive, #16A34A); }
+.ev-gauge[data-tone='negative'] { color: var(--ev-negative, #DC2626); }
+.ev-gauge[data-tone='warn'] { color: var(--ev-warn, #CA8A04); }
+.ev-gauge[data-tone='info'] { color: var(--ev-info, #2563EB); }
+.ev-gauge-svg { flex: none; color: var(--ev-foreground, hsl(var(--foreground, 222 47% 11%))); }
 
 .ev-date-chip {
   display: inline-block;

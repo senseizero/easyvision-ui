@@ -56,6 +56,7 @@ import {
   - [`EasyVisionBadge`](#easyvisionbadge)
   - [`EasyVisionDelta`](#easyvisiondelta)
   - [`EasyVisionSparkline`](#easyvisionsparkline)
+  - [`EasyVisionGauge`](#easyvisiongauge)
   - [`EasyVisionDateChip`](#easyvisiondatechip)
   - [`EasyVisionScoreCell`](#easyvisionscorecell)
 - [`EasyVisionExportButton`](#easyvisionexportbutton)
@@ -1356,7 +1357,7 @@ interface TableLabels {
 
 ## Display components
 
-Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. Badge, delta and date chip are `white-space: nowrap` (the score cell and the sparkline are not), so none of them needs `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
+Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. Badge, delta, gauge and date chip are `white-space: nowrap` (the score cell and the sparkline are not), so none of them needs `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
 
 ### `EasyVisionBadge`
 
@@ -1405,6 +1406,22 @@ A tiny inline SVG line with a dot on the last point. Non-finite values are skipp
 
 ```tsx
 <EasyVisionSparkline values={[3, 5, 4, 8, 9]} tone="positive" ariaLabel="Últimas 5 semanas" />
+```
+
+### `EasyVisionGauge`
+
+A small speedometer (semicircle of four coloured segments and a needle) followed by a label, for levels such as risk. The needle points left at 0 and right at 1; `null`, `undefined` or a non-finite value draws no needle and the label falls back to `–`. The label takes the tone colour; the SVG is `aria-hidden`, so the label is the accessible text. Reads `--ev-gauge-1`..`--ev-gauge-4` (segments, left to right; fallbacks `#16a34a`, `#EAB308`, `#dc2626`, `#991b1b`), `--ev-<tone>` and `--ev-foreground` (needle).
+
+| prop | type | default | |
+|---|---|---|---|
+| `value` | `number \| null \| undefined` | — | Position between 0 and 1 (clamped). |
+| `label` | `ReactNode` | `–` | Text next to the dial, coloured by `tone`. |
+| `tone` | `Tone` | `'neutral'` | Colour of the label. |
+| `title` | `string` | — | Native tooltip. |
+| `size` | `number` | `40` | Width of the dial in px; the height is `size * 0.6`. |
+
+```tsx
+<EasyVisionGauge value={3 / 4} label="Alto" tone="negative" title="Score: 3,0 / 4,0 · Alto" />
 ```
 
 ### `EasyVisionDateChip`
@@ -1958,7 +1975,7 @@ Things that bit us during development and are easy to miss at integration time.
   ```
 
   Tokens: `background`, `foreground`, `card[-foreground]`, `popover[-foreground]`, `primary[-foreground]`, `secondary[-foreground]`, `muted[-foreground]`, `accent[-foreground]`, `destructive[-foreground]`, `border`, `input`, `ring`.
-- **Tone tokens** colour the [display components](#display-components). Each is a complete colour (`--ev-<tone>`), with `--ev-<tone>-soft` as its pale background, and has a built-in fallback: `positive` `#16A34A` / `#DCFCE7`, `negative` `#DC2626` / `#FEE2E2`, `warn` `#CA8A04` / `#FEF3C7`, `info` `#2563EB` / `#DBEAFE`; `--ev-info-foreground` (`#fff`) is the text on the solid date chip. `--ev-neutral` / `--ev-neutral-soft` override the neutral tone, falling back to `--ev-muted-foreground` / `--ev-muted`. `--ev-radius-badge` rounds badges (falls back to `--ev-radius-sm`).
+- **Tone tokens** colour the [display components](#display-components). Each is a complete colour (`--ev-<tone>`), with `--ev-<tone>-soft` as its pale background, and has a built-in fallback: `positive` `#16A34A` / `#DCFCE7`, `negative` `#DC2626` / `#FEE2E2`, `warn` `#CA8A04` / `#FEF3C7`, `info` `#2563EB` / `#DBEAFE`; `--ev-info-foreground` (`#fff`) is the text on the solid date chip. `--ev-gauge-1`..`--ev-gauge-4` colour the four segments of the [gauge](#easyvisiongauge) (`#16a34a`, `#EAB308`, `#dc2626`, `#991b1b`). `--ev-neutral` / `--ev-neutral-soft` override the neutral tone, falling back to `--ev-muted-foreground` / `--ev-muted`. `--ev-radius-badge` rounds badges (falls back to `--ev-radius-sm`).
 - **Shape and density are tokens too**, each defaulting to the value it always had: `--ev-radius` (controls, menus, popovers), `--ev-radius-sm` (checkboxes, chips), `--ev-radius-card` (cards, table frame), `--ev-shadow-popover`, `--ev-shadow-card`, `--ev-table-font-size`, `--ev-table-header-height`, `--ev-table-cell-py`, `--ev-table-cell-px`, `--ev-table-header-background`, `--ev-table-stripe` (even body rows). Fonts are inherited.
 - **One theme for the whole site.** Point the `--ev-*` tokens at the host's own once, where the host's theme lives; then every theme the host switches to (a `[data-theme]` attribute, `.dark`…) restyles EasyVision with it, with no EasyVision-specific values:
 
