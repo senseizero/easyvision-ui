@@ -5,6 +5,7 @@ export interface EasyVisionDeltaProps {
   goodWhen?: 'up' | 'down';
   format?: (abs: number) => string;
   title?: string;
+  directionLabel?: { up: string; down: string };
 }
 
 export function EasyVisionDelta({
@@ -12,6 +13,7 @@ export function EasyVisionDelta({
   goodWhen = 'up',
   format = String,
   title,
+  directionLabel = { up: 'up', down: 'down' },
 }: EasyVisionDeltaProps) {
   const flat = !Number.isFinite(value) || value === 0;
   const up = value > 0;
@@ -22,7 +24,17 @@ export function EasyVisionDelta({
       : 'negative';
   return (
     <span className="ev-delta" data-tone={tone} title={title}>
-      {flat ? '–' : `${up ? '▲' : '▼'} ${format(Math.abs(value))}`}
+      {flat ? (
+        '–'
+      ) : (
+        <>
+          <span aria-hidden="true">{up ? '▲' : '▼'}</span>
+          <span className="ev-sr-only">
+            {up ? directionLabel.up : directionLabel.down}
+          </span>
+          {` ${format(Math.abs(value))}`}
+        </>
+      )}
     </span>
   );
 }

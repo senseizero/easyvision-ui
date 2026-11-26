@@ -80,7 +80,7 @@
   background: transparent;
 }
 .ev-date-chip[data-step='solid'] {
-  color: #fff;
+  color: var(--ev-info-foreground, #fff);
   background: var(--ev-info, #2563EB);
 }
 .ev-date-chip[data-step='light'] {

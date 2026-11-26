@@ -1356,7 +1356,7 @@ interface TableLabels {
 
 ## Display components
 
-Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. A cell component needs no `truncate`; use it inside a column's `cell`.
+Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. They render a short, single-line (`white-space: nowrap`) value, so they need no `truncate`; use them inside a column's `cell`. To expose a longer text on hover, set the column's [`tooltip`](#column-sizing-truncation-and-resizing) option.
 
 ### `EasyVisionBadge`
 
@@ -1365,7 +1365,7 @@ A label coloured by tone. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-
 | prop | type | default | |
 |---|---|---|---|
 | `tone` | `Tone` | `'neutral'` | Colour family. |
-| `variant` | `'pill' \| 'dot'` | `'pill'` | `pill`: tinted background; `dot`: text only, no background or left padding. |
+| `variant` | `'pill' \| 'dot'` | `'pill'` | `pill`: tinted background; `dot`: text with a leading coloured dot, no background and no horizontal padding. |
 | `title` | `string` | — | Native tooltip. |
 | `className` | `string` | — | Extra class. |
 | `children` | `ReactNode` | — | Content (required). |
@@ -1377,7 +1377,7 @@ A label coloured by tone. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-
 
 ### `EasyVisionDelta`
 
-A signed change with an arrow, coloured by whether it is good. Zero or a non-finite value renders a neutral `–`. Reads `--ev-positive`, `--ev-negative`.
+A signed change with an arrow, coloured by whether it is good. Zero or a non-finite value renders a neutral `–`. Reads `--ev-positive`, `--ev-negative`, `--ev-neutral`.
 
 | prop | type | default | |
 |---|---|---|---|
@@ -1385,6 +1385,7 @@ A signed change with an arrow, coloured by whether it is good. Zero or a non-fin
 | `goodWhen` | `'up' \| 'down'` | `'up'` | Which direction is positive (green); the other is negative. |
 | `format` | `(abs: number) => string` | `String` | Formats the absolute value. |
 | `title` | `string` | — | Native tooltip. |
+| `directionLabel` | `{ up: string; down: string }` | `{ up: 'up', down: 'down' }` | Visually hidden text (`.ev-sr-only`) that tells assistive tech the direction; the ▲/▼ glyph is `aria-hidden`. Pass translated strings. |
 
 ```tsx
 <EasyVisionDelta value={-17} goodWhen="down" />            {/* ▼ 17, green */}
@@ -1408,12 +1409,12 @@ A tiny inline SVG line with a dot on the last point. Non-finite values are skipp
 
 ### `EasyVisionDateChip`
 
-A date whose emphasis fades with age: `data-step` is `solid` (younger than `steps.solid`), `light`, `grey`, then `outline`. A missing or invalid date renders `–` with no step. Styled through `data-step` in `display.css`, reading `--ev-info`, `--ev-info-soft`, `--ev-neutral-soft`, `--ev-border`, `--ev-radius-badge`.
+A date whose emphasis fades with age: `data-step` is `solid` (younger than `steps.solid`), `light`, `grey`, then `outline`. A missing or invalid date renders `–` with no step. Styled through `data-step` in `display.css`, reading `--ev-info`, `--ev-info-foreground`, `--ev-info-soft`, `--ev-neutral-soft`, `--ev-border`, `--ev-radius-badge`.
 
 | prop | type | default | |
 |---|---|---|---|
 | `date` | `Date \| string \| null \| undefined` | — | A `Date` or an ISO string. |
-| `now` | `Date` | `new Date()` | Reference instant (pass it for stable tests). |
+| `now` | `Date` | `new Date()` | Reference instant the age is measured against; defaults to the current time. Pass it for stable tests and SSR. |
 | `steps` | `{ solid: number; light: number; grey: number }` | 1 day / 7 days / 30 days | Age limits in ms for each step. |
 | `format` | `(d: Date) => string` | `dd/MM/yy` | Text of the chip. |
 | `title` | `string` | — | Native tooltip. |
@@ -1957,7 +1958,7 @@ Things that bit us during development and are easy to miss at integration time.
   ```
 
   Tokens: `background`, `foreground`, `card[-foreground]`, `popover[-foreground]`, `primary[-foreground]`, `secondary[-foreground]`, `muted[-foreground]`, `accent[-foreground]`, `destructive[-foreground]`, `border`, `input`, `ring`.
-- **Tone tokens** colour the [display components](#display-components). Each is a complete colour (`--ev-<tone>`), with `--ev-<tone>-soft` as its pale background, and has a built-in fallback: `positive` `#16A34A` / `#DCFCE7`, `negative` `#DC2626` / `#FEE2E2`, `warn` `#CA8A04` / `#FEF3C7`, `info` `#2563EB` / `#DBEAFE`; `neutral` follows `--ev-muted-foreground` / `--ev-muted`. `--ev-radius-badge` rounds badges (falls back to `--ev-radius-sm`).
+- **Tone tokens** colour the [display components](#display-components). Each is a complete colour (`--ev-<tone>`), with `--ev-<tone>-soft` as its pale background, and has a built-in fallback: `positive` `#16A34A` / `#DCFCE7`, `negative` `#DC2626` / `#FEE2E2`, `warn` `#CA8A04` / `#FEF3C7`, `info` `#2563EB` / `#DBEAFE`; `--ev-info-foreground` (`#fff`) is the text on the solid date chip. `--ev-neutral` / `--ev-neutral-soft` override the neutral tone, falling back to `--ev-muted-foreground` / `--ev-muted`. `--ev-radius-badge` rounds badges (falls back to `--ev-radius-sm`).
 - **Shape and density are tokens too**, each defaulting to the value it always had: `--ev-radius` (controls, menus, popovers), `--ev-radius-sm` (checkboxes, chips), `--ev-radius-card` (cards, table frame), `--ev-shadow-popover`, `--ev-shadow-card`, `--ev-table-font-size`, `--ev-table-header-height`, `--ev-table-cell-py`, `--ev-table-cell-px`, `--ev-table-header-background`, `--ev-table-stripe` (even body rows). Fonts are inherited.
 - **One theme for the whole site.** Point the `--ev-*` tokens at the host's own once, where the host's theme lives; then every theme the host switches to (a `[data-theme]` attribute, `.dark`…) restyles EasyVision with it, with no EasyVision-specific values:
 

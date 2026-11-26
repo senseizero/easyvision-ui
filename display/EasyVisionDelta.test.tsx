@@ -28,12 +28,12 @@ const render = (el: React.ReactElement) => {
 describe('EasyVisionDelta', () => {
   it('up is positive by default', () => {
     const el = render(<EasyVisionDelta value={2} />);
-    expect(el.textContent).toBe('▲ 2');
+    expect(el.textContent).toBe('▲up 2');
     expect(el.getAttribute('data-tone')).toBe('positive');
   });
   it('down with goodWhen up is negative', () => {
     const el = render(<EasyVisionDelta value={-17} goodWhen="up" />);
-    expect(el.textContent).toBe('▼ 17');
+    expect(el.textContent).toBe('▼down 17');
     expect(el.getAttribute('data-tone')).toBe('negative');
   });
   it('down with goodWhen down is positive', () => {
@@ -52,8 +52,19 @@ describe('EasyVisionDelta', () => {
       expect(el.getAttribute('data-tone')).toBe('neutral');
     }
   });
+  it('hides the glyph and exposes the direction to assistive tech', () => {
+    const el = render(<EasyVisionDelta value={-1} />);
+    expect(el.querySelector('[aria-hidden="true"]')!.textContent).toBe('▼');
+    expect(el.querySelector('.ev-sr-only')!.textContent).toBe('down');
+  });
+  it('uses directionLabel', () => {
+    const el = render(
+      <EasyVisionDelta value={1} directionLabel={{ up: 'sube', down: 'baja' }} />,
+    );
+    expect(el.querySelector('.ev-sr-only')!.textContent).toBe('sube');
+  });
   it('applies format', () => {
     const el = render(<EasyVisionDelta value={5} format={(n) => n + ' %'} />);
-    expect(el.textContent).toBe('▲ 5 %');
+    expect(el.textContent).toBe('▲up 5 %');
   });
 });

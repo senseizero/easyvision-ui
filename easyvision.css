@@ -33,6 +33,7 @@
  *   --ev-negative (#DC2626)  --ev-negative-soft (#FEE2E2)
  *   --ev-warn     (#CA8A04)  --ev-warn-soft     (#FEF3C7)
  *   --ev-info     (#2563EB)  --ev-info-soft     (#DBEAFE)
+ *   --ev-info-foreground (#fff)  text on the solid date chip
  *   --ev-neutral  (muted-foreground)  --ev-neutral-soft (muted)
  * Fonts are inherited from the host.
  *
