@@ -1149,6 +1149,7 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                           truncate?: boolean;
                           resizable?: boolean;
                           minWidth?: number;
+                          tooltip?: (row: T) => string | undefined;
                         };
                         const cellWidthStyle: React.CSSProperties | undefined =
                           cellMeta.resizable
@@ -1165,7 +1166,9 @@ export function EasyVisionTable<T extends RowData>(props: EasyVisionTableProps<T
                         // stays discoverable. For custom cells whose accessor
                         // returns a non-string, we just skip the tooltip.
                         let titleAttr: string | undefined;
-                        if (cellMeta.truncate) {
+                        if (cellMeta.truncate && cellMeta.tooltip) {
+                          titleAttr = cellMeta.tooltip(row.original);
+                        } else if (cellMeta.truncate) {
                           try {
                             const raw = cell.getValue();
                             if (raw != null && (typeof raw === 'string' || typeof raw === 'number')) {

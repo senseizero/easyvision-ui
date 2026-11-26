@@ -79,6 +79,12 @@ export type EasyVisionColumn<T> =
       minWidth?: number;
       truncate?: boolean;
       /**
+       * Native tooltip for the cell, from the row: set on the truncating
+       * wrapper of a `truncate` column (e.g. the full text of a clamped
+       * title). Returning `undefined` shows none. Replaces the default title.
+       */
+      tooltip?: (row: T) => string | undefined;
+      /**
        * Allow the user to drag the column's right edge to resize it. The
        * starting width is `width` (or 240px if unset). User-resized widths
        * live in the table slice alongside page / sort / visibility, so they
@@ -127,6 +133,8 @@ export type EasyVisionColumn<T> =
       width?: number | string;
       /** See data-column docs. */
       truncate?: boolean;
+      /** See data-column docs. */
+      tooltip?: (row: T) => string | undefined;
       /** See data-column docs. */
       priority?: number;
       /** See data-column docs. */

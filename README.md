@@ -52,6 +52,12 @@ import {
   - [Binding a multifilter](#binding-a-multifilter)
   - [External filter and manual refetch](#external-filter-and-manual-refetch)
   - [Toolbar slots](#toolbar-slots)
+- [Display components](#display-components)
+  - [`EasyVisionBadge`](#easyvisionbadge)
+  - [`EasyVisionDelta`](#easyvisiondelta)
+  - [`EasyVisionSparkline`](#easyvisionsparkline)
+  - [`EasyVisionDateChip`](#easyvisiondatechip)
+  - [`EasyVisionScoreCell`](#easyvisionscorecell)
 - [`EasyVisionExportButton`](#easyvisionexportbutton)
   - [What gets exported](#what-gets-exported)
   - [CSV instead of Excel](#csv-instead-of-excel-formatcsv)
@@ -861,6 +867,8 @@ type DataColumn<T> = {
   width?: number | string;
   /** Truncate cell content with ellipsis when it overflows the column width. */
   truncate?: boolean;
+  /** Native tooltip of a `truncate` cell, from the row (e.g. the full title). */
+  tooltip?: (row: T) => string | undefined;
   /** Allow the user to drag the right edge of the header to resize this column. */
   resizable?: boolean;
   /** Header text in an exported sheet. Defaults to `header` when it's a plain string, else `field`. */
@@ -883,6 +891,7 @@ type UiColumn<T> = {
   largeScreensOnly?: boolean;
   width?: number | string;
   truncate?: boolean;
+  tooltip?: (row: T) => string | undefined;
   resizable?: boolean;
   /** See data-column docs. */
   exportHeader?: string;
@@ -1003,12 +1012,13 @@ By default a table wider than its container scrolls sideways (`columnFit="scroll
 
 #### Column sizing, truncation, and resizing
 
-Three orthogonal column-level options control horizontal layout:
+Four column-level options control horizontal layout:
 
 | option | type | effect |
 |---|---|---|
 | `width` | `number \| string` | Initial width. Number → px, string → any CSS length (`'20%'`, `'12rem'`, `'min(280px, 30%)'`). When omitted, the column auto-sizes to its content. |
 | `truncate` | `boolean` | Single-line cell content; overflow becomes an ellipsis. Combine with `defaultCell(content, title)` to expose the full text as a native tooltip on hover. |
+| `tooltip` | `(row) => string \| undefined` | The native tooltip (`title`) of a `truncate` column's cell, computed from the row: the full text of a clamped title, or any summary. Replaces the default title; returning `undefined` shows none. Works with custom `cell` renderers too, unlike the automatic title. Has no effect without `truncate`. |
 | `resizable` | `boolean` | Renders a drag handle on the right edge of the header. The user can drag it to resize the column live; `width` becomes the initial size. The handle has a subtle idle line that lights up on hover/drag and a 12px-wide invisible hit area for easy grabbing. |
 
 ```tsx
@@ -1018,7 +1028,7 @@ Three orthogonal column-level options control horizontal layout:
   width: 280,
   truncate: true,
   resizable: true,
-  cell: (row) => defaultCell(row.title, row.title), // full text on hover
+  tooltip: (row) => row.title, // full text on hover, whatever `cell` renders
 }
 ```
 
@@ -1340,6 +1350,92 @@ interface TableLabels {
   selectedAllBanner: (n: number) => string;  // 'Todos los {n} registros seleccionados'
   clearSelection: string;                    // 'Limpiar selección'
 }
+```
+
+---
+
+## Display components
+
+Small, stateless presentational pieces for table cells and dashboards. They are plain functions of their props (no `id`, no store), self-contained `.ev-*` CSS, and read only the [tone tokens](#theming) (each with a built-in fallback). `Tone` is exported: `'positive' | 'negative' | 'neutral' | 'info' | 'warn'`. A cell component needs no `truncate`; use it inside a column's `cell`.
+
+### `EasyVisionBadge`
+
+A label coloured by tone. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-radius-badge`.
+
+| prop | type | default | |
+|---|---|---|---|
+| `tone` | `Tone` | `'neutral'` | Colour family. |
+| `variant` | `'pill' \| 'dot'` | `'pill'` | `pill`: tinted background; `dot`: text only, no background or left padding. |
+| `title` | `string` | — | Native tooltip. |
+| `className` | `string` | — | Extra class. |
+| `children` | `ReactNode` | — | Content (required). |
+
+```tsx
+<EasyVisionBadge tone="negative">Alta</EasyVisionBadge>
+<EasyVisionBadge tone="warn" variant="dot" title="Pendiente">Revisar</EasyVisionBadge>
+```
+
+### `EasyVisionDelta`
+
+A signed change with an arrow, coloured by whether it is good. Zero or a non-finite value renders a neutral `–`. Reads `--ev-positive`, `--ev-negative`.
+
+| prop | type | default | |
+|---|---|---|---|
+| `value` | `number` | — | The change; the arrow follows its sign. |
+| `goodWhen` | `'up' \| 'down'` | `'up'` | Which direction is positive (green); the other is negative. |
+| `format` | `(abs: number) => string` | `String` | Formats the absolute value. |
+| `title` | `string` | — | Native tooltip. |
+
+```tsx
+<EasyVisionDelta value={-17} goodWhen="down" />            {/* ▼ 17, green */}
+<EasyVisionDelta value={2.5} format={(n) => `${n} pp`} />  {/* ▲ 2.5 pp, green */}
+```
+
+### `EasyVisionSparkline`
+
+A tiny inline SVG line with a dot on the last point. Non-finite values are skipped. Stroke reads `--ev-<tone>` (neutral: `currentColor`).
+
+| prop | type | default | |
+|---|---|---|---|
+| `values` | `number[]` | — | The series, oldest first. |
+| `tone` | `Tone` | `'neutral'` | Stroke colour. |
+| `width` / `height` | `number` | `84` / `20` | Size in px. |
+| `ariaLabel` | `string` | — | Makes it an `img` with this label; without it the SVG is `aria-hidden`. |
+
+```tsx
+<EasyVisionSparkline values={[3, 5, 4, 8, 9]} tone="positive" ariaLabel="Últimas 5 semanas" />
+```
+
+### `EasyVisionDateChip`
+
+A date whose emphasis fades with age: `data-step` is `solid` (younger than `steps.solid`), `light`, `grey`, then `outline`. A missing or invalid date renders `–` with no step. Styled through `data-step` in `display.css`, reading `--ev-info`, `--ev-info-soft`, `--ev-neutral-soft`, `--ev-border`, `--ev-radius-badge`.
+
+| prop | type | default | |
+|---|---|---|---|
+| `date` | `Date \| string \| null \| undefined` | — | A `Date` or an ISO string. |
+| `now` | `Date` | `new Date()` | Reference instant (pass it for stable tests). |
+| `steps` | `{ solid: number; light: number; grey: number }` | 1 day / 7 days / 30 days | Age limits in ms for each step. |
+| `format` | `(d: Date) => string` | `dd/MM/yy` | Text of the chip. |
+| `title` | `string` | — | Native tooltip. |
+
+```tsx
+<EasyVisionDateChip date={row.lastSeen} />
+<EasyVisionDateChip date={row.lastSeen} format={(d) => d.toLocaleDateString('es-ES')} />
+```
+
+### `EasyVisionScoreCell`
+
+A 0..1 value as a percentage, tinted by band; it fills the whole table cell. A missing value renders `–`. Reads `--ev-<tone>`, `--ev-<tone>-soft`, `--ev-table-cell-py/-px`.
+
+| prop | type | default | |
+|---|---|---|---|
+| `value` | `number \| null \| undefined` | — | Score between 0 and 1. |
+| `bands` | `{ min: number; tone: Tone }[]` | — | The highest `min` the value reaches picks the tone; with no bands the cell is untinted. |
+| `format` | `(v: number) => string` | `78.7 %` style | Text of the value. |
+
+```tsx
+const bands = [{ min: 0.8, tone: 'negative' }, { min: 0.4, tone: 'warn' }, { min: 0, tone: 'neutral' }];
+{ field: 'score', header: 'Riesgo', cell: (r) => <EasyVisionScoreCell value={r.score} bands={bands} /> }
 ```
 
 ---
@@ -1861,6 +1957,7 @@ Things that bit us during development and are easy to miss at integration time.
   ```
 
   Tokens: `background`, `foreground`, `card[-foreground]`, `popover[-foreground]`, `primary[-foreground]`, `secondary[-foreground]`, `muted[-foreground]`, `accent[-foreground]`, `destructive[-foreground]`, `border`, `input`, `ring`.
+- **Tone tokens** colour the [display components](#display-components). Each is a complete colour (`--ev-<tone>`), with `--ev-<tone>-soft` as its pale background, and has a built-in fallback: `positive` `#16A34A` / `#DCFCE7`, `negative` `#DC2626` / `#FEE2E2`, `warn` `#CA8A04` / `#FEF3C7`, `info` `#2563EB` / `#DBEAFE`; `neutral` follows `--ev-muted-foreground` / `--ev-muted`. `--ev-radius-badge` rounds badges (falls back to `--ev-radius-sm`).
 - **Shape and density are tokens too**, each defaulting to the value it always had: `--ev-radius` (controls, menus, popovers), `--ev-radius-sm` (checkboxes, chips), `--ev-radius-card` (cards, table frame), `--ev-shadow-popover`, `--ev-shadow-card`, `--ev-table-font-size`, `--ev-table-header-height`, `--ev-table-cell-py`, `--ev-table-cell-px`, `--ev-table-header-background`, `--ev-table-stripe` (even body rows). Fonts are inherited.
 - **One theme for the whole site.** Point the `--ev-*` tokens at the host's own once, where the host's theme lives; then every theme the host switches to (a `[data-theme]` attribute, `.dark`…) restyles EasyVision with it, with no EasyVision-specific values:
 
